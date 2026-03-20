@@ -1,48 +1,29 @@
-/**
- * Agent Avatar Component
- * Displays agent avatar and name in chat messages
- */
-
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface AgentAvatarProps {
-  avatar: string; // Image URL or emoji
-  color: string; // Theme color (hex)
-  name: string; // Agent display name
-  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+  avatar?: string; // Prop ini tetap dibiarkan agar tidak error di komponen lain yang memanggilnya, tapi kita akan mengabaikannya.
 }
 
-// Check if string is a URL
-function isUrl(str: string): boolean {
-  return str.startsWith('http') || str.startsWith('/') || str.startsWith('data:');
-}
-
-export default function AgentAvatar({ avatar, color, name, size = 'md' }: AgentAvatarProps) {
-  const sizeClasses = {
-    sm: 'size-6',
-    md: 'size-8',
-    lg: 'size-10',
-  };
-
+export function AgentAvatar({ className }: AgentAvatarProps) {
   return (
-    <div className="flex items-center gap-2 mb-2">
-      <Avatar className={sizeClasses[size]} style={{ borderColor: color, borderWidth: 2 }}>
-        {isUrl(avatar) ? (
-          <>
-            <AvatarImage src={avatar} alt={name} />
-            <AvatarFallback style={{ backgroundColor: `${color}20`, color }}>
-              {name.charAt(0)}
-            </AvatarFallback>
-          </>
-        ) : (
-          <AvatarFallback style={{ backgroundColor: `${color}20`, color }}>
-            {avatar || name.charAt(0)}
-          </AvatarFallback>
-        )}
-      </Avatar>
-      <span className="text-sm font-semibold" style={{ color }}>
-        {name}
-      </span>
+    <div
+      className={cn(
+        "relative flex shrink-0 overflow-hidden rounded-full",
+        // Efek Cyberpunk Glow: Border ungu dengan bayangan neon cyan
+        "ring-2 ring-[#a855f7] shadow-[0_0_15px_rgba(6,182,212,0.6)]",
+        className
+      )}
+    >
+      <Image
+        src="/avatars/avatar-sensei.jpeg" // Pastikan letak dan nama file gambar Anda sesuai
+        alt="Miyasensei"
+        width={512}
+        height={512}
+        className="aspect-square h-full w-full object-cover"
+        priority
+      />
     </div>
   );
 }
