@@ -8,7 +8,7 @@ import { useTheme } from '@/lib/hooks/use-theme';
 import { useState } from 'react';
 import { SettingsDialog } from '@/components/settings';
 
-export function Header() {
+export function Header({ currentSceneTitle }: { currentSceneTitle?: string }) {
   const { t, locale, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
@@ -21,9 +21,11 @@ export function Header() {
     <>
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#060b19]/80 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all text-foreground">
         <div className="flex h-14 items-center px-4 md:px-6 max-w-[1920px] mx-auto">
-          
           {/* ── Logo Area (Miyasensei Branding) ── */}
-          <Link href="/" className="flex items-center gap-2.5 transition-transform hover:scale-[1.02] group">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 transition-transform hover:scale-[1.02] group"
+          >
             <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-[0_0_15px_rgba(168,85,247,0.4)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] transition-all">
               <Sparkles className="size-4 text-white group-hover:animate-pulse" />
             </div>
@@ -35,7 +37,6 @@ export function Header() {
           {/* ── Right Actions ── */}
           <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
             <nav className="flex items-center gap-2">
-              
               {/* Language Toggle */}
               <button
                 onClick={() => setLocale(locale === 'zh-CN' ? 'en-US' : 'zh-CN')}
