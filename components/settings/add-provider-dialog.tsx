@@ -73,6 +73,60 @@ export function AddProviderDialog({ open, onOpenChange, onAdd }: AddProviderDial
             <h2 className="text-lg font-semibold">{t('settings.addProviderDialog')}</h2>
           </div>
 
+          {/* Quick Presets */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+              Quick Presets
+            </Label>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => {
+                  setName('MiniMax');
+                  setType('anthropic');
+                  setBaseUrl('https://api.minimaxi.com/anthropic/v1');
+                  setIcon('/logos/minimax.svg');
+                }}
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                MiniMax
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => {
+                  setName('Ollama');
+                  setType('openai');
+                  setBaseUrl('http://localhost:11434/v1');
+                  setIcon('');
+                }}
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Ollama
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => {
+                  setName('DeepSeek');
+                  setType('openai');
+                  setBaseUrl('https://api.deepseek.com/v1');
+                  setIcon('/logos/deepseek.svg');
+                }}
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                DeepSeek
+              </Button>
+            </div>
+          </div>
+
           {/* Provider Name */}
           <div className="space-y-2">
             <Label>{t('settings.providerName')}</Label>
