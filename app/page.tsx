@@ -46,10 +46,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
              <div className="relative">
-                <img src="/logo-horizontal.jpeg" alt="Logo" className="relative h-8 w-auto rounded-lg shadow-sm" />
+                <img src="/logo-horizontal.svg" alt="MiyaSensei Logo" className="relative h-8 w-auto rounded-lg shadow-sm" />
              </div>
              <span className="font-bold text-lg tracking-tight text-slate-900">
-               Sensei
+               MiyaSensei
              </span>
           </Link>
 
@@ -113,7 +113,7 @@ export default function LandingPage() {
           </h1>
           
           <p className="max-w-2xl mx-auto text-xl text-slate-600 mb-10 leading-relaxed">
-            Sensei transforms any topic or document into a <span className="text-slate-900 font-medium">complete interactive classroom</span>. 
+            MiyaSensei transforms any topic or document into a <span className="text-slate-900 font-medium">complete interactive classroom</span>. 
             Experience adaptive curriculums, real-time explanations, and personalized evaluations.
           </p>
           
@@ -146,7 +146,7 @@ export default function LandingPage() {
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900">Not just content delivery. <br/>A <span className="text-purple-600">complete learning system</span>.</h2>
                 <p className="text-slate-600 text-lg">
-                  Traditional learning is fragmented. Sensei builds a structured curriculum just for you, 
+                  Traditional learning is fragmented. MiyaSensei builds a structured curriculum just for you, 
                   adapting to your pace and style in real-time.
                 </p>
               </div>
@@ -248,7 +248,7 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 gap-8">
            {[
              { title: "Input Topic", desc: "Type what you want to learn, or upload a document.", icon: <BookOpen className="w-8 h-8 text-blue-600"/>, color: "blue" },
-             { title: "AI Builds Classroom", desc: "Sensei generates a syllabus, slides, and quizzes instantly.", icon: <BrainCircuit className="w-8 h-8 text-purple-600"/>, color: "purple" },
+             { title: "AI Builds Classroom", desc: "MiyaSensei generates a syllabus, slides, and quizzes instantly.", icon: <BrainCircuit className="w-8 h-8 text-purple-600"/>, color: "purple" },
              { title: "Learn Interactively", desc: "Engage with the AI teacher, take quizzes, and track progress.", icon: <Sparkles className="w-8 h-8 text-cyan-600"/>, color: "cyan" },
            ].map((step, i) => (
              <Card key={i} className="relative overflow-hidden bg-white border-slate-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
@@ -334,7 +334,7 @@ export default function LandingPage() {
       
       {/* ═══ Footer ═══ */}
       <footer className="py-12 border-t border-slate-100 text-center text-slate-500 text-sm bg-white">
-        <p>&copy; {new Date().getFullYear()} OpenMAIC / Sensei. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} MiyaSensei. All rights reserved.</p>
       </footer>
     </div>
   );
