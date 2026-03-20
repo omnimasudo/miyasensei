@@ -1,7 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Box, Plus } from 'lucide-react';
+import { Box } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import type { ProviderId, ProviderConfig } from '@/lib/ai/providers';
@@ -14,7 +13,6 @@ interface ProviderListProps {
   providers: ProviderWithServerInfo[];
   selectedProviderId: ProviderId;
   onSelect: (providerId: ProviderId) => void;
-  onAddProvider: () => void;
   width?: number;
 }
 
@@ -22,7 +20,6 @@ export function ProviderList({
   providers,
   selectedProviderId,
   onSelect,
-  onAddProvider,
   width,
 }: ProviderListProps) {
   const { t } = useI18n();

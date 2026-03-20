@@ -246,7 +246,6 @@ const getDefaultProvidersConfig = (): ProvidersConfig => {
       defaultBaseUrl: provider.defaultBaseUrl,
       icon: provider.icon,
       requiresApiKey: provider.requiresApiKey,
-      enabled: pid === 'openrouter', // Only OpenRouter enabled by default
       isBuiltIn: true,
     };
   });
@@ -370,7 +369,7 @@ const migrateFromOldStorage = () => {
 
   // Parse model selection
   let providerId: ProviderId = 'openrouter';
-  let modelId = 'google/gemini-2.0-flash-exp:free';
+  let modelId = 'google/gemini-2.5-flash';
   if (oldLlmModel) {
     const [pid, mid] = oldLlmModel.split(':');
     if (pid && mid) {
@@ -944,21 +943,35 @@ export const useSettingsStore = create<SettingsState>()(
     },
     {
       name: 'settings-storage',
-      version: 6,
+      version: 8,
       // Migrate persisted state
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Partial<SettingsState>;
 
+        // v7 -> v8: Migrate deprecated Pro model
+        if (version < 8) {
+          if (state.providerId === 'openrouter' && (state.modelId === 'google/gemini-2.0-pro-exp-02-05:free' || state.modelId === 'google/gemini-2.0-pro-exp-02-05')) {
+            state.modelId = 'google/gemini-2.5-flash';
+          }
+        }
+
+        // v6 -> v7: Update to stable Gemini 2.5 Flash
+        if (version < 7) {
+          if (state.providerId === 'openrouter' && state.modelId === 'google/gemini-2.0-flash-exp:free') {
+            state.modelId = 'google/gemini-2.5-flash';
+          }
+        }
+
         // v5 -> v6: Fix deprecated Flash Thinking model
         if (version < 6) {
           if (state.providerId === 'openrouter' && state.modelId === 'google/gemini-2.0-flash-thinking-exp:free') {
-            state.modelId = 'google/gemini-2.0-flash-exp:free';
+            state.modelId = 'google/gemini-2.5-flash';
           }
         }
 
         // v4 -> v5: Fix OpenRouter model ID again
         if (version < 5) {
-          if (state.providerId === 'openrouter' && (state.modelId === 'google/gemini-2.0-flash-exp:free' || state.modelId === 'google/gemini-2.0-flash-lite-preview-02-05:free')) {
+          if (state.providerId === 'openrouter' && (state.modelId === 'google/gemini-2.5-flash' || state.modelId === 'google/gemini-2.0-flash-lite-preview-02-05:free')) {
             state.modelId = 'google/gemini-2.0-flash-thinking-exp:free';
           }
         }
@@ -966,7 +979,7 @@ export const useSettingsStore = create<SettingsState>()(
         // v3 -> v4: Fix invalid OpenRouter model ID
         if (version < 4) {
           if (state.providerId === 'openrouter' && state.modelId === 'google/gemini-2.0-flash-lite-preview-02-05:free') {
-            state.modelId = 'google/gemini-2.0-flash-exp:free';
+            state.modelId = 'google/gemini-2.5-flash';
           }
         }
 
@@ -974,11 +987,11 @@ export const useSettingsStore = create<SettingsState>()(
         if (version < 3) {
           if (state.providerId !== 'openrouter') {
             state.providerId = 'openrouter';
-            state.modelId = 'google/gemini-2.0-flash-exp:free';
+            state.modelId = 'google/gemini-2.5-flash';
           }
           // Ensure OpenRouter is enabled in config
           if (state.providersConfig && state.providersConfig.openrouter) {
-            state.providersConfig.openrouter.enabled = true;
+            // enabled property removed
           } else if (state.providersConfig) {
              // If missing openrouter key entirely (unlikely but possible), let ensureBuiltInProviders handle it, 
              // but we can't rely on it running *before* this check if we insert this block early.

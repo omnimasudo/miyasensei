@@ -222,14 +222,6 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
           },
         },
       },
-      // OpenRouter models added for compatibility
-      {
-        id: 'google/gemini-2.0-flash-exp:free',
-        name: 'Gemini 2.0 Flash Exp (Free)',
-        contextWindow: 1000000,
-        outputWindow: 8192,
-        capabilities: { streaming: true, tools: true, vision: true },
-      },
       {
         id: 'deepseek/deepseek-r1:free',
         name: 'DeepSeek R1 (Free)',
@@ -869,20 +861,11 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
     icon: '/logos/openai.svg', 
     models: [
       {
-        id: 'google/gemini-2.0-pro-exp-02-05:free',
-        name: 'Gemini 2.0 Pro Exp (Free)',
-        contextWindow: 2000000,
-        outputWindow: 8192,
-        capabilities: { streaming: true, tools: true, vision: true },
-        pricing: { prompt: 0, completion: 0 }
-      },
-      {
-        id: 'google/gemini-2.0-flash-exp:free',
-        name: 'Gemini 2.0 Flash Exp (Free)',
+        id: 'google/gemini-2.5-flash',
+        name: 'Gemini 2.5 Flash',
         contextWindow: 1000000,
         outputWindow: 8192,
         capabilities: { streaming: true, tools: true, vision: true },
-        pricing: { prompt: 0, completion: 0 }
       },
       {
         id: 'deepseek/deepseek-r1:free',
@@ -890,7 +873,6 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
         contextWindow: 128000,
         outputWindow: 8192,
         capabilities: { streaming: true, tools: true, vision: true },
-        pricing: { prompt: 0, completion: 0 }
       },
       {
         id: 'liquid/lfm-40b:free',
@@ -898,7 +880,6 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
         contextWindow: 32000,
         outputWindow: 4096,
         capabilities: { streaming: true, tools: true, vision: false },
-        pricing: { prompt: 0, completion: 0 }
       },
       {
         id: 'google/gemini-pro-1.5',

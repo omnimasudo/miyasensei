@@ -451,7 +451,7 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
       if (firstRemainingPid && firstModel) {
         setModel(firstRemainingPid, firstModel);
       } else {
-        setModel('openrouter', 'google/gemini-2.0-flash-exp:free');
+        setModel('openrouter', 'google/gemini-2.5-flash');
       }
     }
     setProviderToDelete(null);
@@ -778,7 +778,6 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
                 providers={allProviders.filter(p => p.id === 'openrouter')}
                 selectedProviderId={selectedProviderId}
                 onSelect={handleProviderSelect}
-                onAddProvider={() => setShowAddProviderDialog(true)}
                 width={providerListWidth}
               />
               <div

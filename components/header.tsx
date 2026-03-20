@@ -8,7 +8,7 @@ import { useTheme } from '@/lib/hooks/use-theme';
 import { useState } from 'react';
 import { SettingsDialog } from '@/components/settings';
 
-export function Header({ currentSceneTitle }: { currentSceneTitle?: string }) {
+export function Header() {
   const { t, locale, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();

@@ -7,26 +7,20 @@ import { useCanvasStore } from '@/lib/store/canvas';
 import { useSettingsStore } from '@/lib/store/settings';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { SceneSidebar } from './stage/scene-sidebar';
-import { Header } from './header';
 import { CanvasArea } from '@/components/canvas/canvas-area';
-import { Roundtable } from '@/components/roundtable';
 import { PlaybackEngine, computePlaybackView } from '@/lib/playback';
 import type { EngineMode, TriggerEvent, Effect } from '@/lib/playback';
 import { ActionEngine } from '@/lib/action/engine';
 import { createAudioPlayer } from '@/lib/utils/audio-player';
-import type { Action, DiscussionAction, SpeechAction } from '@/lib/types/action';
+import type { Action, SpeechAction } from '@/lib/types/action';
 // Playback state persistence removed — refresh always starts from the beginning
 import { ChatArea, type ChatAreaRef } from '@/components/chat/chat-area';
-import { agentsToParticipants, useAgentRegistry } from '@/lib/orchestration/registry/store';
+import { useAgentRegistry } from '@/lib/orchestration/registry/store';
 import type { AgentConfig } from '@/lib/orchestration/registry/types';
 import {
   Menu,
-  MessageSquare,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
-  Maximize2,
-  Minimize2,
   AlertTriangle,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -63,21 +57,17 @@ export function Stage({
   // Layout state from settings store
   const sidebarCollapsed = useSettingsStore((s) => s.sidebarCollapsed);
   const setSidebarCollapsed = useSettingsStore((s) => s.setSidebarCollapsed);
-  // Chat collapsed state is now irrelevant as it's always visible in the new layout, 
-  // but we keep the state to satisfy CanvasArea props if needed.
-  const chatAreaCollapsed = useSettingsStore((s) => s.chatAreaCollapsed);
-  const setChatAreaCollapsed = useSettingsStore((s) => s.setChatAreaCollapsed);
 
   // PlaybackEngine state
   const [engineMode, setEngineMode] = useState<EngineMode>('idle');
   const [playbackCompleted, setPlaybackCompleted] = useState(false);
   const [lectureSpeech, setLectureSpeech] = useState<string | null>(null);
   const [liveSpeech, setLiveSpeech] = useState<string | null>(null);
-  const [speechProgress, setSpeechProgress] = useState<number | null>(null);
   const [discussionTrigger, setDiscussionTrigger] = useState<TriggerEvent | null>(null);
 
   // Speaking agent tracking
   const [speakingAgentId, setSpeakingAgentId] = useState<string | null>(null);
+
 
   // Thinking state
   const [thinkingState, setThinkingState] = useState<{
@@ -87,10 +77,6 @@ export function Stage({
 
   // Cue user state
   const [isCueUser, setIsCueUser] = useState(false);
-
-  // End flash state
-  const [showEndFlash, setShowEndFlash] = useState(false);
-  const [endFlashSessionType, setEndFlashSessionType] = useState<'qa' | 'discussion'>('discussion');
 
   // Streaming state for stop button
   const [chatIsStreaming, setChatIsStreaming] = useState(false);
@@ -111,12 +97,6 @@ export function Stage({
 
   // Selected agents from settings store (Zustand)
   const selectedAgentIds = useSettingsStore((s) => s.selectedAgentIds);
-
-  // Generate participants from selected agents
-  const participants = useMemo(
-    () => agentsToParticipants(selectedAgentIds, t),
-    [selectedAgentIds, t],
-  );
 
   // Pick a student agent for discussion trigger (prioritize student > non-teacher > fallback)
   const pickStudentAgent = useCallback((): string => {
@@ -148,49 +128,11 @@ export function Stage({
   // When true, the next engine init will auto-start playback (for auto-play scene advance)
   const autoStartRef = useRef(false);
 
-  /**
-   * Soft-pause: interrupt current agent stream but keep the session active.
-   * Used when clicking the bubble pause button or opening input during QA/discussion.
-   * Does NOT end the topic — user can continue speaking in the same session.
-   * Preserves liveSpeech (with "..." appended) and speakingAgentId so the
-   * roundtable bubble stays on the interrupted agent's text.
-   */
-  const doSoftPause = useCallback(async () => {
-    await chatAreaRef.current?.softPauseActiveSession();
-    // Append "..." to live speech to show interruption in roundtable bubble.
-    // Only annotate when there's actual text being interrupted — during pure
-    // director-thinking (prev is null, no agent assigned), leave liveSpeech
-    // as-is so no spurious teacher bubble appears.
-    setLiveSpeech((prev) => (prev !== null ? prev + '...' : null));
-    // Keep speakingAgentId — bubble identity is preserved
-    setThinkingState(null);
-    setChatIsStreaming(false);
-    setIsTopicPending(true);
-    // Don't clear chatSessionType, speakingAgentId, or liveSpeech
-    // Don't show end flash
-    // Don't call handleEndDiscussion — engine stays in current state
-  }, []);
-
-  /**
-   * Resume a soft-paused topic: re-call /chat with existing session messages.
-   * The director picks the next agent to continue.
-   */
-  const doResumeTopic = useCallback(async () => {
-    // Clear old bubble immediately — no lingering on interrupted text
-    setIsTopicPending(false);
-    setLiveSpeech(null);
-    setSpeakingAgentId(null);
-    setThinkingState({ stage: 'director' });
-    setChatIsStreaming(true);
-    // Fire new chat round — SSE events will drive thinking → agent_start → speech
-    await chatAreaRef.current?.resumeActiveSession();
-  }, []);
 
   /** Reset all live/discussion state (shared by doSessionCleanup & onDiscussionEnd) */
   const resetLiveState = useCallback(() => {
     setLiveSpeech(null);
     setSpeakingAgentId(null);
-    setSpeechProgress(null);
     setThinkingState(null);
     setIsCueUser(false);
     setIsTopicPending(false);
@@ -203,8 +145,6 @@ export function Stage({
     resetLiveState();
     setPlaybackCompleted(false);
     setLectureSpeech(null);
-    setSpeechProgress(null);
-    setShowEndFlash(false);
     setActiveBubbleId(null);
     setDiscussionTrigger(null);
   }, [resetLiveState]);
@@ -214,22 +154,13 @@ export function Stage({
    * Handles: engine transition, flash, roundtable state clearing.
    */
   const doSessionCleanup = useCallback(() => {
-    const activeType = chatSessionType;
-
     // Engine cleanup — guard to avoid double flash from onDiscussionEnd
     manualStopRef.current = true;
     engineRef.current?.handleEndDiscussion();
     manualStopRef.current = false;
 
-    // Show end flash with correct session type
-    if (activeType === 'qa' || activeType === 'discussion') {
-      setEndFlashSessionType(activeType);
-      setShowEndFlash(true);
-      setTimeout(() => setShowEndFlash(false), 1800);
-    }
-
     resetLiveState();
-  }, [chatSessionType, resetLiveState]);
+  }, [resetLiveState]);
 
   // Shared stop-discussion handler (used by both Roundtable and Canvas toolbar)
   const handleStopDiscussion = useCallback(async () => {
@@ -344,12 +275,6 @@ export function Stage({
         setDiscussionTrigger(null);
         // Clear roundtable state (idempotent — may already be cleared by doSessionCleanup)
         resetLiveState();
-        // Only show flash for engine-initiated ends (not manual stop — that's handled by doSessionCleanup)
-        if (!manualStopRef.current) {
-          setEndFlashSessionType('discussion');
-          setShowEndFlash(true);
-          setTimeout(() => setShowEndFlash(false), 1800);
-        }
         // If all actions are exhausted (discussion was the last action), mark
         // playback as completed so the bubble shows reset instead of play.
         if (engineRef.current?.isExhausted()) {
@@ -642,9 +567,6 @@ export function Stage({
     : scenes.findIndex((s) => s.id === currentSceneId);
   const totalScenesCount = scenes.length + (hasNextPending ? 1 : 0);
 
-  // get action information
-  const totalActions = currentScene?.actions?.length || 0;
-
   // whiteboard toggle
   const handleWhiteboardToggle = () => {
     setWhiteboardOpen(!whiteboardOpen);
@@ -662,18 +584,6 @@ export function Stage({
         return 'idle';
     }
   })();
-
-  // Build discussion request for Roundtable ProactiveCard from trigger
-  const discussionRequest: DiscussionAction | null = discussionTrigger
-    ? {
-        type: 'discussion',
-        id: discussionTrigger.id,
-        topic: discussionTrigger.question,
-        prompt: discussionTrigger.prompt,
-        agentId: discussionTrigger.agentId || 'default-1',
-      }
-    : null;
-
 
   return (
     <div className="flex-1 w-full h-full bg-[#060b19] overflow-hidden">
@@ -739,13 +649,6 @@ export function Stage({
                   } else if (text === null && agentId === null) {
                     setChatIsStreaming(false);
                   }
-                });
-              }}
-              onSpeechProgress={(ratio) => {
-                const epoch = sceneEpochRef.current;
-                queueMicrotask(() => {
-                  if (sceneEpochRef.current !== epoch) return;
-                  setSpeechProgress(ratio);
                 });
               }}
               onThinking={(state) => {
@@ -862,7 +765,6 @@ export function Stage({
                        setChatIsStreaming(false);
                     }
                   }}
-                  onSpeechProgress={setSpeechProgress}
                   onThinking={setThinkingState}
                   onCueUser={() => setIsCueUser(true)}
                   onStopSession={doSessionCleanup}
