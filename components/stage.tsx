@@ -27,9 +27,18 @@ import {
   ChevronRight,
   Maximize2,
   Minimize2,
+  AlertTriangle,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AgentAvatar } from '@/components/agent/agent-avatar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 /**
  * Stage Component - Miyasensei Layout
@@ -89,6 +98,9 @@ export function Stage({
 
   // Topic pending state
   const [isTopicPending, setIsTopicPending] = useState(false);
+
+  // Pending scene switch (gated)
+  const [pendingSceneId, setPendingSceneId] = useState<string | null>(null);
 
   // Active bubble ID for playback highlight
   const [activeBubbleId, setActiveBubbleId] = useState<string | null>(null);
@@ -905,9 +917,7 @@ export function Stage({
         }}
       >
         <AlertDialogContent className="max-w-sm rounded-2xl p-0 overflow-hidden border-0 shadow-[0_25px_60px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_60px_-12px_rgba(0,0,0,0.5)]">
-          <VisuallyHidden.Root>
-            <AlertDialogTitle>{t('stage.confirmSwitchTitle')}</AlertDialogTitle>
-          </VisuallyHidden.Root>
+          <AlertDialogTitle className="sr-only">{t('stage.confirmSwitchTitle')}</AlertDialogTitle>
           {/* Top accent bar */}
           <div className="h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-red-400" />
 
