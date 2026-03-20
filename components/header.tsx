@@ -14,8 +14,8 @@ export function Header() {
   const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Sembunyikan header global di halaman utama (karena sudah pakai floating toolbar custom)
-  if (pathname === '/') return null;
+  // Sembunyikan header global di halaman dashboard (karena sudah pakai floating toolbar custom)
+  if (pathname === '/dashboard') return null;
 
   return (
     <>
