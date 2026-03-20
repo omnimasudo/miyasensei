@@ -246,6 +246,7 @@ const getDefaultProvidersConfig = (): ProvidersConfig => {
       defaultBaseUrl: provider.defaultBaseUrl,
       icon: provider.icon,
       requiresApiKey: provider.requiresApiKey,
+      enabled: pid === 'openrouter', // Only OpenRouter enabled by default
       isBuiltIn: true,
     };
   });
@@ -368,8 +369,8 @@ const migrateFromOldStorage = () => {
   if (!oldLlmModel && !oldProvidersConfig) return null; // No old data
 
   // Parse model selection
-  let providerId: ProviderId = 'openai';
-  let modelId = 'gpt-4o-mini';
+  let providerId: ProviderId = 'openrouter';
+  let modelId = 'google/gemini-2.0-flash-exp:free';
   if (oldLlmModel) {
     const [pid, mid] = oldLlmModel.split(':');
     if (pid && mid) {
@@ -431,7 +432,7 @@ export const useSettingsStore = create<SettingsState>()(
 
       return {
         // Initial state (use migrated data if available)
-        providerId: migratedData?.providerId || 'openai',
+        providerId: migratedData?.providerId || 'openrouter',
         modelId: migratedData?.modelId || '',
         providersConfig: migratedData?.providersConfig || getDefaultProvidersConfig(),
         ttsModel: migratedData?.ttsModel || 'openai-tts',
@@ -943,10 +944,47 @@ export const useSettingsStore = create<SettingsState>()(
     },
     {
       name: 'settings-storage',
-      version: 2,
+      version: 6,
       // Migrate persisted state
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Partial<SettingsState>;
+
+        // v5 -> v6: Fix deprecated Flash Thinking model
+        if (version < 6) {
+          if (state.providerId === 'openrouter' && state.modelId === 'google/gemini-2.0-flash-thinking-exp:free') {
+            state.modelId = 'google/gemini-2.0-flash-exp:free';
+          }
+        }
+
+        // v4 -> v5: Fix OpenRouter model ID again
+        if (version < 5) {
+          if (state.providerId === 'openrouter' && (state.modelId === 'google/gemini-2.0-flash-exp:free' || state.modelId === 'google/gemini-2.0-flash-lite-preview-02-05:free')) {
+            state.modelId = 'google/gemini-2.0-flash-thinking-exp:free';
+          }
+        }
+
+        // v3 -> v4: Fix invalid OpenRouter model ID
+        if (version < 4) {
+          if (state.providerId === 'openrouter' && state.modelId === 'google/gemini-2.0-flash-lite-preview-02-05:free') {
+            state.modelId = 'google/gemini-2.0-flash-exp:free';
+          }
+        }
+
+        // v2 -> v3: Force migration to OpenRouter
+        if (version < 3) {
+          if (state.providerId !== 'openrouter') {
+            state.providerId = 'openrouter';
+            state.modelId = 'google/gemini-2.0-flash-exp:free';
+          }
+          // Ensure OpenRouter is enabled in config
+          if (state.providersConfig && state.providersConfig.openrouter) {
+            state.providersConfig.openrouter.enabled = true;
+          } else if (state.providersConfig) {
+             // If missing openrouter key entirely (unlikely but possible), let ensureBuiltInProviders handle it, 
+             // but we can't rely on it running *before* this check if we insert this block early.
+             // Actually ensureBuiltInProviders runs below.
+          }
+        }
 
         // v0 → v1: clear hardcoded default model so user must actively select
         if (version === 0) {
@@ -962,12 +1000,12 @@ export const useSettingsStore = create<SettingsState>()(
         if (state.ttsModel && !state.ttsProviderId) {
           // Map old ttsModel values to new ttsProviderId
           if (state.ttsModel === 'openai-tts') {
-            state.ttsProviderId = 'openai-tts';
+            state.ttsProviderId = 'browser-native-tts'; // Fallback to browser native
           } else if (state.ttsModel === 'azure-tts') {
             state.ttsProviderId = 'azure-tts';
           } else {
-            // Default to OpenAI
-            state.ttsProviderId = 'openai-tts';
+            // Default to Browser Native
+            state.ttsProviderId = 'browser-native-tts';
           }
         }
 

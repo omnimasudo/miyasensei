@@ -451,7 +451,7 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
       if (firstRemainingPid && firstModel) {
         setModel(firstRemainingPid, firstModel);
       } else {
-        setModel('openai' as ProviderId, 'gpt-4o-mini');
+        setModel('openrouter', 'google/gemini-2.0-flash-exp:free');
       }
     }
     setProviderToDelete(null);
@@ -773,8 +773,9 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
           {/* Middle - Provider List (only shown for provider-based sections) */}
           {activeSection === 'providers' && (
             <>
+              {/* Only show OpenRouter provider in the settings list to simplify the UI */}
               <ProviderList
-                providers={allProviders}
+                providers={allProviders.filter(p => p.id === 'openrouter')}
                 selectedProviderId={selectedProviderId}
                 onSelect={handleProviderSelect}
                 onAddProvider={() => setShowAddProviderDialog(true)}

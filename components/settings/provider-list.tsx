@@ -73,13 +73,13 @@ export function ProviderList({
         ))}
       </div>
 
-      {/* Add Provider Button */}
-      <div className="p-3 border-t">
+      {/* Add Provider Button - Hidden for simplified OpenRouter-only mode */}
+      {/* <div className="p-3 border-t">
         <Button variant="outline" size="sm" className="w-full gap-1.5" onClick={onAddProvider}>
           <Plus className="h-3.5 w-3.5" />
           {t('settings.addProviderButton')}
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

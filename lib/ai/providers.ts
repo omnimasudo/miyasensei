@@ -222,6 +222,28 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
           },
         },
       },
+      // OpenRouter models added for compatibility
+      {
+        id: 'google/gemini-2.0-flash-exp:free',
+        name: 'Gemini 2.0 Flash Exp (Free)',
+        contextWindow: 1000000,
+        outputWindow: 8192,
+        capabilities: { streaming: true, tools: true, vision: true },
+      },
+      {
+        id: 'deepseek/deepseek-r1:free',
+        name: 'DeepSeek R1 (Free)',
+        contextWindow: 128000,
+        outputWindow: 8192,
+        capabilities: { streaming: true, tools: true, vision: true },
+      },
+      {
+        id: 'liquid/lfm-40b:free',
+        name: 'Liquid LFM 40B (Free)',
+        contextWindow: 32000,
+        outputWindow: 4096,
+        capabilities: { streaming: true, tools: true, vision: false },
+      },
     ],
   },
 
@@ -835,6 +857,63 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
         outputWindow: 32768,
         capabilities: { streaming: true, tools: true, vision: true },
       },
+    ],
+  },
+  
+  openrouter: {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    type: 'openai',
+    defaultBaseUrl: 'https://openrouter.ai/api/v1',
+    requiresApiKey: true,
+    icon: '/logos/openai.svg', 
+    models: [
+      {
+        id: 'google/gemini-2.0-pro-exp-02-05:free',
+        name: 'Gemini 2.0 Pro Exp (Free)',
+        contextWindow: 2000000,
+        outputWindow: 8192,
+        capabilities: { streaming: true, tools: true, vision: true },
+        pricing: { prompt: 0, completion: 0 }
+      },
+      {
+        id: 'google/gemini-2.0-flash-exp:free',
+        name: 'Gemini 2.0 Flash Exp (Free)',
+        contextWindow: 1000000,
+        outputWindow: 8192,
+        capabilities: { streaming: true, tools: true, vision: true },
+        pricing: { prompt: 0, completion: 0 }
+      },
+      {
+        id: 'deepseek/deepseek-r1:free',
+        name: 'DeepSeek R1 (Free)',
+        contextWindow: 128000,
+        outputWindow: 8192,
+        capabilities: { streaming: true, tools: true, vision: true },
+        pricing: { prompt: 0, completion: 0 }
+      },
+      {
+        id: 'liquid/lfm-40b:free',
+        name: 'Liquid LFM 40B (Free)',
+        contextWindow: 32000,
+        outputWindow: 4096,
+        capabilities: { streaming: true, tools: true, vision: false },
+        pricing: { prompt: 0, completion: 0 }
+      },
+      {
+        id: 'google/gemini-pro-1.5',
+        name: 'Gemini 1.5 Pro',
+        contextWindow: 1048576,
+        outputWindow: 8192,
+        capabilities: { streaming: true, tools: true, vision: true },
+      },
+      {
+        id: 'google/gemini-3.1-pro-preview',
+        name: 'Gemini 3.1 Pro Preview (via OpenRouter)',
+        contextWindow: 1048576,
+        outputWindow: 65536,
+        capabilities: { streaming: true, tools: true, vision: true },
+      }
     ],
   },
 };

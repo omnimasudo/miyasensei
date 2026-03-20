@@ -418,7 +418,14 @@ function ModelSelectorPopover({
       open={popoverOpen}
       onOpenChange={(open) => {
         setPopoverOpen(open);
-        if (open) setDrillProvider(null);
+        if (open) {
+          // If only one provider is configured, drill directly into it
+          if (configuredProviders.length === 1) {
+            setDrillProvider(configuredProviders[0].id);
+          } else {
+            setDrillProvider(null);
+          }
+        }
       }}
     >
       <Tooltip>
@@ -502,26 +509,36 @@ function ModelSelectorPopover({
         {/* Level 2: Model list for selected provider */}
         {drillProvider && activeProvider && (
           <div className="max-h-72 overflow-y-auto">
-            {/* Back header */}
-            <button
-              onClick={() => setDrillProvider(null)}
-              className="w-full flex items-center gap-2 px-3 py-2 border-b bg-muted/40 hover:bg-muted/60 transition-colors"
-            >
-              <ChevronLeft className="size-3.5 text-muted-foreground" />
-              {activeProvider.icon ? (
-                <img
-                  src={activeProvider.icon}
-                  alt={activeProvider.name}
-                  className="size-4 rounded-sm"
-                />
-              ) : (
-                <Bot className="size-4 text-muted-foreground" />
-              )}
-              <span className="text-xs font-semibold">{activeProvider.name}</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">
-                {activeProvider.models.length} {t('settings.modelCount')}
-              </span>
-            </button>
+            {/* Back header - only show back button if multiple providers exist */}
+            {configuredProviders.length > 1 ? (
+              <button
+                onClick={() => setDrillProvider(null)}
+                className="w-full flex items-center gap-2 px-3 py-2 border-b bg-muted/40 hover:bg-muted/60 transition-colors"
+              >
+                <ChevronLeft className="size-3.5 text-muted-foreground mr-1" />
+                <span className="text-xs font-semibold">{activeProvider.name}</span>
+                <span className="text-[10px] text-muted-foreground ml-auto">
+                  {activeProvider.models.length} {t('settings.modelCount')}
+                </span>
+              </button>
+            ) : (
+              <div className="w-full flex items-center gap-2 px-3 py-2 border-b bg-muted/40 transition-colors">
+                {activeProvider.icon ? (
+                  <img
+                    src={activeProvider.icon}
+                    alt={activeProvider.name}
+                    className="size-4 rounded-sm"
+                  />
+                ) : (
+                  <Bot className="size-4 text-muted-foreground" />
+                )}
+                <span className="text-xs font-semibold">{activeProvider.name}</span>
+                <span className="text-[10px] text-muted-foreground ml-auto">
+                  {activeProvider.models.length} {t('settings.modelCount')}
+                </span>
+              </div>
+            )}
+            
             {/* Models */}
             {activeProvider.models.map((model) => {
               const isSelected = currentProviderId === drillProvider && currentModelId === model.id;
