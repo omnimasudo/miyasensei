@@ -13,10 +13,7 @@ import {
   Pencil,
   Trash2,
   Settings,
-  Sun,
-  Moon,
-  Monitor,
-  BotOff,
+  Sparkles,
   ChevronUp,
 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
@@ -69,6 +66,7 @@ const initialFormState: FormState = {
 
 function HomePage() {
   const { t, locale, setLocale } = useI18n();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initialFormState);
@@ -87,7 +85,6 @@ function HomePage() {
   const [recentOpen, setRecentOpen] = useState(true);
 
   // Hydrate client-only state after mount (avoids SSR mismatch)
-  /* eslint-disable react-hooks/set-state-in-effect -- Hydration from localStorage must happen in effect */
   useEffect(() => {
     setStoreHydrated(true);
     try {
@@ -114,16 +111,13 @@ function HomePage() {
       /* localStorage unavailable */
     }
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Restore requirement draft from cache (derived state pattern — no effect needed)
-  const [prevCachedRequirement, setPrevCachedRequirement] = useState(cachedRequirement);
-  if (cachedRequirement !== prevCachedRequirement) {
-    setPrevCachedRequirement(cachedRequirement);
+  // Restore requirement draft from cache
+  useEffect(() => {
     if (cachedRequirement) {
       setForm((prev) => ({ ...prev, requirement: cachedRequirement }));
     }
-  }
+  }, [cachedRequirement]);
 
   const needsSetup = storeHydrated && !currentModelId;
   const [languageOpen, setLanguageOpen] = useState(false);
@@ -163,13 +157,8 @@ function HomePage() {
   };
 
   useEffect(() => {
-    // Clear stale media store to prevent cross-course thumbnail contamination.
-    // The store may hold tasks from a previously visited classroom whose elementIds
-    // (gen_img_1, etc.) collide with other courses' placeholders.
     useMediaGenerationStore.getState().revokeObjectUrls();
     useMediaGenerationStore.setState({ tasks: {} });
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Store hydration on mount
     loadClassrooms();
   }, []);
 
@@ -197,6 +186,13 @@ function HomePage() {
       if (field === 'requirement') updateRequirementCache(value as string);
     } catch {
       /* ignore */
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleGenerate();
     }
   };
 
@@ -231,10 +227,12 @@ function HomePage() {
   };
 
   const handleGenerate = async () => {
+    const canGenerate = form.requirement.trim().length > 0 || form.pdfFile;
+
     // Validate setup before proceeding
     if (!currentModelId) {
       showSetupToast(
-        <BotOff className="size-4.5 text-amber-600 dark:text-amber-400" />,
+        <Settings className="size-4.5 text-amber-600 dark:text-amber-400" />,
         t('settings.modelNotConfigured'),
         t('settings.setupNeeded'),
       );
@@ -242,7 +240,7 @@ function HomePage() {
       return;
     }
 
-    if (!form.requirement.trim()) {
+    if (!canGenerate) {
       setError(t('upload.requirementRequired'));
       return;
     }
@@ -301,33 +299,27 @@ function HomePage() {
     }
   };
 
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return t('classroom.today');
-    if (diffDays === 1) return t('classroom.yesterday');
-    if (diffDays < 7) return `${diffDays} ${t('classroom.daysAgo')}`;
-    return date.toLocaleDateString();
-  };
-
-  const canGenerate = !!form.requirement.trim();
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      e.preventDefault();
-      if (canGenerate) handleGenerate();
-    }
-  };
+  const canGenerate = form.requirement.trim().length > 0 || !!form.pdfFile;
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center p-4 pt-16 md:p-8 md:pt-16 overflow-x-hidden">
-      {/* ═══ Top-right pill (unchanged) ═══ */}
+    <div className="min-h-[100dvh] w-full bg-slate-50 dark:bg-[#060b19] flex flex-col items-center p-4 pt-16 md:p-8 md:pt-16 overflow-x-hidden text-slate-700 dark:text-slate-200 selection:bg-cyan-500/30 selection:text-cyan-800 dark:selection:text-cyan-200 transition-colors duration-300">
+      {/* ═══ Background Decor (Cyberpunk grid & glow) ═══ */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.05)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
+
+        {/* Glows */}
+        <div
+          className="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-blue-300/30 dark:bg-blue-600/20 rounded-[100%] blur-[100px] animate-pulse"
+          style={{ animationDuration: '8s' }}
+        />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-300/20 dark:bg-purple-600/10 rounded-full blur-[120px]" />
+      </div>
+
+      {/* ═══ Top-right pill ═══ */}
       <div
         ref={toolbarRef}
-        className="fixed top-4 right-4 z-50 flex items-center gap-1 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md px-2 py-1.5 rounded-full border border-gray-100/50 dark:border-gray-700/50 shadow-sm"
+        className="fixed top-4 right-4 z-50 flex items-center gap-1 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md px-2 py-1.5 rounded-full border border-slate-200 dark:border-white/10 shadow-lg ring-1 ring-black/5 dark:ring-white/5 transition-all"
       >
         {/* Language Selector */}
         <div className="relative">
@@ -336,21 +328,20 @@ function HomePage() {
               setLanguageOpen(!languageOpen);
               setThemeOpen(false);
             }}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
           >
             {locale === 'zh-CN' ? 'CN' : 'EN'}
           </button>
           {languageOpen && (
-            <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[120px]">
+            <div className="absolute top-full mt-2 right-0 bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-lg shadow-xl shadow-black/10 dark:shadow-black/50 overflow-hidden z-50 min-w-[120px]">
               <button
                 onClick={() => {
                   setLocale('zh-CN');
                   setLanguageOpen(false);
                 }}
                 className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
-                  locale === 'zh-CN' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                  'w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors',
+                  locale === 'zh-CN' && 'text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-white/5 font-medium',
                 )}
               >
                 简体中文
@@ -361,9 +352,8 @@ function HomePage() {
                   setLanguageOpen(false);
                 }}
                 className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
-                  locale === 'en-US' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                  'w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors',
+                  locale === 'en-US' && 'text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-white/5 font-medium',
                 )}
               >
                 English
@@ -372,77 +362,14 @@ function HomePage() {
           )}
         </div>
 
-        <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
-
-        {/* Theme Selector */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setThemeOpen(!themeOpen);
-              setLanguageOpen(false);
-            }}
-            className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
-          >
-            {theme === 'light' && <Sun className="w-4 h-4" />}
-            {theme === 'dark' && <Moon className="w-4 h-4" />}
-            {theme === 'system' && <Monitor className="w-4 h-4" />}
-          </button>
-          {themeOpen && (
-            <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[140px]">
-              <button
-                onClick={() => {
-                  setTheme('light');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'light' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Sun className="w-4 h-4" />
-                {t('settings.themeOptions.light')}
-              </button>
-              <button
-                onClick={() => {
-                  setTheme('dark');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'dark' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Moon className="w-4 h-4" />
-                {t('settings.themeOptions.dark')}
-              </button>
-              <button
-                onClick={() => {
-                  setTheme('system');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'system' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Monitor className="w-4 h-4" />
-                {t('settings.themeOptions.system')}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
+        <div className="w-[1px] h-4 bg-slate-200 dark:bg-white/10" />
 
         {/* Settings Button */}
         <div className="relative">
           <button
             onClick={() => setSettingsOpen(true)}
             className={cn(
-              'p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group',
+              'p-2 rounded-full text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all group',
               needsSetup && 'animate-setup-glow',
             )}
           >
@@ -451,16 +378,17 @@ function HomePage() {
           {needsSetup && (
             <>
               <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-                <span className="animate-setup-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-violet-500" />
+                <span className="animate-setup-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500" />
               </span>
-              <span className="animate-setup-float absolute top-full mt-2 right-0 whitespace-nowrap text-[11px] font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800/50 px-2 py-0.5 rounded-full shadow-sm pointer-events-none">
+              <span className="animate-setup-float absolute top-full mt-2 right-0 whitespace-nowrap text-[11px] font-medium text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800/50 px-2 py-0.5 rounded-full shadow-sm pointer-events-none">
                 {t('settings.setupNeeded')}
               </span>
             </>
           )}
         </div>
       </div>
+
       <SettingsDialog
         open={settingsOpen}
         onOpenChange={(open) => {
@@ -470,82 +398,80 @@ function HomePage() {
         initialSection={settingsSection}
       />
 
-      {/* ═══ Background Decor ═══ */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '4s' }}
-        />
-        <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '6s' }}
-        />
-      </div>
-
-      {/* ═══ Hero section: title + input (centered, wider) ═══ */}
+      {/* ═══ Hero section: title + input (centered) ═══ */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className={cn(
-          'relative z-20 w-full max-w-[800px] flex flex-col items-center',
-          classrooms.length === 0 ? 'justify-center min-h-[calc(100dvh-8rem)]' : 'mt-[10vh]',
+          'relative z-20 w-full max-w-[720px] flex flex-col items-center',
+          classrooms.length === 0 ? 'justify-center min-h-[calc(100dvh-8rem)]' : 'mt-[8vh]',
         )}
       >
         {/* ── Logo ── */}
-        <motion.img
-          src="/logo-horizontal."
-          alt="OpenMAIC"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            delay: 0.1,
-            type: 'spring',
-            stiffness: 200,
-            damping: 20,
-          }}
-          className="h-12 md:h-16 mb-2 -ml-2 md:-ml-3"
-        />
+        <div className="relative mb-6 group cursor-default">
+          <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+          <motion.img
+            src="/logo-horizontal.jpeg"
+            alt="Miyasensei"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              delay: 0.1,
+              type: 'spring',
+              stiffness: 200,
+              damping: 20,
+            }}
+            className="relative h-14 md:h-20 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_20px_rgba(0,0,0,0.5)] ring-1 ring-black/5 dark:ring-white/10"
+          />
+        </div>
 
         {/* ── Slogan ── */}
-        <motion.p
+        <motion.h2
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.25 }}
-          className="text-sm text-muted-foreground/60 mb-8"
+          className="text-lg md:text-xl font-light text-slate-500 dark:text-slate-400 mb-10 text-center tracking-wide"
         >
-          {t('home.slogan')}
-        </motion.p>
+          <span className="text-cyan-600 dark:text-cyan-400 font-normal">Input topic.</span> Generate a complete
+          classroom.
+        </motion.h2>
 
         {/* ── Unified input area ── */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.35 }}
-          className="w-full"
+          className="w-full group/input"
         >
-          <div className="w-full rounded-2xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl shadow-black/[0.03] dark:shadow-black/20 transition-shadow focus-within:shadow-2xl focus-within:shadow-violet-500/[0.06]">
-            {/* ── Greeting + Profile + Agents ── */}
-            <div className="relative z-20 flex items-start justify-between">
+          <div className="w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#0f172a]/60 backdrop-blur-xl shadow-2xl shadow-slate-200/50 dark:shadow-black/40 transition-all duration-500 hover:shadow-cyan-500/10 dark:hover:shadow-cyan-900/10 hover:border-cyan-500/20 dark:hover:border-white/20 focus-within:border-cyan-500/30 focus-within:shadow-[0_0_40px_-10px_rgba(6,182,212,0.15)] overflow-hidden">
+            {/* Top Bar: Profile & Agents */}
+            <div className="relative px-2 pt-2 flex items-center justify-between">
               <GreetingBar />
-              <div className="pr-3 pt-3.5 shrink-0">
+              <div className="scale-90 origin-right opacity-80 hover:opacity-100 transition-opacity">
                 <AgentBar />
               </div>
             </div>
 
             {/* Textarea */}
-            <textarea
-              ref={textareaRef}
-              placeholder={t('upload.requirementPlaceholder')}
-              className="w-full resize-none border-0 bg-transparent px-4 pt-1 pb-2 text-[13px] leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none min-h-[140px] max-h-[300px]"
-              value={form.requirement}
-              onChange={(e) => updateForm('requirement', e.target.value)}
-              onKeyDown={handleKeyDown}
-              rows={4}
-            />
+            <div className="relative px-2">
+              <textarea
+                ref={textareaRef}
+                placeholder={t('upload.requirementPlaceholder')}
+                className="w-full resize-none border-0 bg-transparent px-4 py-3 text-base leading-relaxed text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none min-h-[100px] max-h-[300px]"
+                value={form.requirement}
+                onChange={(e) => updateForm('requirement', e.target.value)}
+                onKeyDown={handleKeyDown}
+                rows={3}
+              />
 
-            {/* Toolbar row */}
-            <div className="px-3 pb-3 flex items-end gap-2">
+              {/* Decorative corner accents */}
+              <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-slate-200 dark:border-white/10 rounded-tl opacity-0 group-focus-within/input:opacity-100 transition-opacity" />
+              <div className="absolute top-0 right-0 w-2 h-2 border-r border-t border-slate-200 dark:border-white/10 rounded-tr opacity-0 group-focus-within/input:opacity-100 transition-opacity" />
+            </div>
+
+            {/* Bottom Toolbar & Action */}
+            <div className="px-3 pb-3 pt-2 flex items-end gap-2 bg-gradient-to-t from-slate-50/40 dark:from-[#0f172a]/40 to-transparent">
               <div className="flex-1 min-w-0">
                 <GenerationToolbar
                   language={form.language}
@@ -562,7 +488,7 @@ function HomePage() {
                 />
               </div>
 
-              {/* Voice input */}
+              {/* Voice */}
               <SpeechButton
                 size="md"
                 onTranscription={(text) => {
@@ -574,19 +500,19 @@ function HomePage() {
                 }}
               />
 
-              {/* Send button */}
+              {/* Generate Button */}
               <button
                 onClick={handleGenerate}
                 disabled={!canGenerate}
                 className={cn(
-                  'shrink-0 h-8 rounded-lg flex items-center justify-center gap-1.5 transition-all px-3',
+                  'shrink-0 h-10 px-5 rounded-xl flex items-center justify-center gap-2 transition-all font-medium',
                   canGenerate
-                    ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm cursor-pointer'
-                    : 'bg-muted text-muted-foreground/40 cursor-not-allowed',
+                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20 dark:shadow-blue-900/20 hover:shadow-cyan-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-white/5',
                 )}
               >
-                <span className="text-xs font-medium">{t('toolbar.enterClassroom')}</span>
-                <ArrowUp className="size-3.5" />
+                <span>{t('toolbar.enterClassroom')}</span>
+                <ArrowUp className="size-4" />
               </button>
             </div>
           </div>
@@ -599,105 +525,70 @@ function HomePage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-3 w-full p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+              className="mt-4 w-full p-4 bg-red-50 border border-red-200 dark:bg-red-500/10 dark:border-red-500/20 rounded-xl flex items-center justify-center"
             >
-              <p className="text-sm text-destructive">{error}</p>
+              <span className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</span>
             </motion.div>
           )}
         </AnimatePresence>
       </motion.div>
 
-      {/* ═══ Recent classrooms — collapsible ═══ */}
+      {/* ═══ Recent classrooms (Grid) ═══ */}
       {classrooms.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="relative z-10 mt-10 w-full max-w-6xl flex flex-col items-center"
+          className="relative z-10 mt-16 w-full max-w-6xl flex flex-col items-center pb-20"
         >
-          {/* Trigger — divider-line with centered text */}
-          <button
-            onClick={() => {
-              const next = !recentOpen;
-              setRecentOpen(next);
-              try {
-                localStorage.setItem(RECENT_OPEN_STORAGE_KEY, String(next));
-              } catch {
-                /* ignore */
-              }
-            }}
-            className="group w-full flex items-center gap-4 py-2 cursor-pointer"
-          >
-            <div className="flex-1 h-px bg-border/40 group-hover:bg-border/70 transition-colors" />
-            <span className="shrink-0 flex items-center gap-2 text-[13px] text-muted-foreground/60 group-hover:text-foreground/70 transition-colors select-none">
-              <Clock className="size-3.5" />
-              {t('classroom.recentClassrooms')}
-              <span className="text-[11px] tabular-nums opacity-60">{classrooms.length}</span>
-              <motion.div
-                animate={{ rotate: recentOpen ? 180 : 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-              >
-                <ChevronDown className="size-3.5" />
-              </motion.div>
+          {/* Section Divider */}
+          <div className="w-full max-w-sm flex items-center gap-4 mb-8">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent" />
+            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              Recent Sessions
             </span>
-            <div className="flex-1 h-px bg-border/40 group-hover:bg-border/70 transition-colors" />
-          </button>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent" />
+          </div>
 
-          {/* Expandable content */}
-          <AnimatePresence>
-            {recentOpen && (
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
+            {classrooms.map((classroom, i) => (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-                className="w-full overflow-hidden"
+                key={classroom.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: i * 0.05 + 0.5,
+                  duration: 0.4,
+                  ease: 'easeOut',
+                }}
               >
-                <div className="pt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-8">
-                  {classrooms.map((classroom, i) => (
-                    <motion.div
-                      key={classroom.id}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        delay: i * 0.04,
-                        duration: 0.35,
-                        ease: 'easeOut',
-                      }}
-                    >
-                      <ClassroomCard
-                        classroom={classroom}
-                        slide={thumbnails[classroom.id]}
-                        formatDate={formatDate}
-                        onDelete={handleDelete}
-                        confirmingDelete={pendingDeleteId === classroom.id}
-                        onConfirmDelete={() => confirmDelete(classroom.id)}
-                        onCancelDelete={() => setPendingDeleteId(null)}
-                        onClick={() => router.push(`/classroom/${classroom.id}`)}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
+                <ClassroomCard
+                  classroom={classroom}
+                  slide={thumbnails[classroom.id]}
+                  formatDate={(ts) => new Date(ts).toLocaleDateString()}
+                  onDelete={handleDelete}
+                  confirmingDelete={pendingDeleteId === classroom.id}
+                  onConfirmDelete={() => confirmDelete(classroom.id)}
+                  onCancelDelete={() => setPendingDeleteId(null)}
+                  onClick={() => router.push(`/classroom/${classroom.id}`)}
+                />
               </motion.div>
-            )}
-          </AnimatePresence>
+            ))}
+          </div>
         </motion.div>
       )}
 
-      {/* Footer — flows with content, at the very end */}
-      <div className="mt-auto pt-12 pb-4 text-center text-xs text-muted-foreground/40">
-        OpenMAIC Open Source Project
+      {/* Footer */}
+      <div className="mt-auto py-6 text-center">
+        <p className="text-[10px] text-slate-400 dark:text-slate-600 font-mono tracking-widest uppercase opacity-60">
+          Miyasensei v1.0 • AI-Native Learning Platform
+        </p>
       </div>
     </div>
   );
 }
 
-// ─── Greeting Bar — avatar + "Hi, Name", click to edit in-place ────
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
-
-function isCustomAvatar(src: string) {
-  return src.startsWith('data:');
-}
 
 function GreetingBar() {
   const { t } = useI18n();
@@ -718,7 +609,6 @@ function GreetingBar() {
 
   const displayName = nickname || t('profile.defaultNickname');
 
-  // Click-outside to collapse
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -775,7 +665,7 @@ function GreetingBar() {
   };
 
   return (
-    <div ref={containerRef} className="relative pl-4 pr-2 pt-3.5 pb-1 w-auto">
+    <div ref={containerRef} className="relative w-auto z-20">
       <input
         ref={avatarInputRef}
         type="file"
@@ -784,194 +674,143 @@ function GreetingBar() {
         onChange={handleAvatarUpload}
       />
 
-      {/* ── Collapsed pill (always in flow) ── */}
+      {/* ── Collapsed pill ── */}
       {!open && (
         <div
-          className="flex items-center gap-2.5 cursor-pointer transition-all duration-200 group rounded-full px-2.5 py-1.5 border border-border/50 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 active:scale-[0.97]"
+          className="flex items-center gap-3 cursor-pointer transition-all duration-200 group rounded-full px-1.5 py-1.5 hover:bg-slate-100 dark:hover:bg-white/5 active:scale-[0.98]"
           onClick={() => setOpen(true)}
         >
           <div className="shrink-0 relative">
-            <div className="size-8 rounded-full overflow-hidden ring-[1.5px] ring-border/30 group-hover:ring-violet-400/60 dark:group-hover:ring-violet-400/40 transition-all duration-300">
+            <div className="size-8 rounded-full overflow-hidden ring-1 ring-slate-200 dark:ring-white/20 group-hover:ring-cyan-500/50 dark:group-hover:ring-cyan-400/50 transition-all duration-300">
               <img src={avatar} alt="" className="size-full object-cover" />
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-white dark:bg-slate-800 border border-border/40 flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
-              <Pencil className="size-[7px] text-muted-foreground/70" />
-            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="leading-none select-none flex items-center gap-1">
-                  <span>
-                    <span className="text-xs text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
-                      {t('home.greeting')}
-                    </span>
-                    <span className="text-[13px] font-semibold text-foreground/85 group-hover:text-foreground transition-colors">
-                      {displayName}
-                    </span>
-                  </span>
-                  <ChevronDown className="size-3 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={4}>
-                {t('profile.editTooltip')}
-              </TooltipContent>
-            </Tooltip>
+          <div className="flex-1 min-w-0 pr-2">
+            <span className="leading-none select-none flex items-center gap-1.5">
+              <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide">
+                Hello,
+              </span>
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 group-hover:text-black dark:group-hover:text-white transition-colors">
+                {displayName}
+              </span>
+            </span>
           </div>
         </div>
       )}
 
-      {/* ── Expanded panel (absolute, floating) ── */}
+      {/* ── Expanded panel ── */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.97 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-            className="absolute left-4 top-3.5 z-50 w-64"
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-0 top-0 z-50 w-72"
           >
-            <div className="rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] shadow-[0_1px_8px_-2px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.3)] px-2.5 py-2">
-              {/* ── Row: avatar + name ── */}
-              <div
-                className="flex items-center gap-2.5 cursor-pointer transition-all duration-200"
-                onClick={() => {
-                  setOpen(false);
-                  setEditingName(false);
-                  setAvatarPickerOpen(false);
-                }}
-              >
-                {/* Avatar */}
+            <div className="rounded-2xl bg-white dark:bg-[#1e293b] ring-1 ring-slate-200 dark:ring-white/10 shadow-2xl px-4 py-4 space-y-4">
+              {/* Header Row */}
+              <div className="flex items-start justify-between">
                 <div
-                  className="shrink-0 relative cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setAvatarPickerOpen(!avatarPickerOpen);
-                  }}
+                  className="relative cursor-pointer group/avatar"
+                  onClick={() => setAvatarPickerOpen(!avatarPickerOpen)}
                 >
-                  <div className="size-8 rounded-full overflow-hidden ring-[1.5px] ring-violet-300/70 dark:ring-violet-500/40 transition-all duration-300">
+                  <div className="size-14 rounded-full overflow-hidden ring-2 ring-slate-100 dark:ring-white/10 group-hover/avatar:ring-cyan-500 transition-all">
                     <img src={avatar} alt="" className="size-full object-cover" />
                   </div>
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-white dark:bg-slate-800 border border-border/60 flex items-center justify-center"
-                  >
-                    <ChevronDown
-                      className={cn(
-                        'size-2 text-muted-foreground/70 transition-transform duration-200',
-                        avatarPickerOpen && 'rotate-180',
-                      )}
-                    />
-                  </motion.div>
+                  <div className="absolute -bottom-1 -right-1 size-5 bg-white dark:bg-[#0f172a] rounded-full flex items-center justify-center border border-slate-200 dark:border-white/10">
+                    <Pencil className="size-2.5 text-cyan-600 dark:text-cyan-400" />
+                  </div>
                 </div>
 
-                {/* Text */}
-                <div className="flex-1 min-w-0">
-                  {editingName ? (
-                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        ref={nameInputRef}
-                        value={nameDraft}
-                        onChange={(e) => setNameDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') commitName();
-                          if (e.key === 'Escape') {
-                            setEditingName(false);
-                          }
-                        }}
-                        onBlur={commitName}
-                        maxLength={20}
-                        placeholder={t('profile.defaultNickname')}
-                        className="flex-1 min-w-0 h-6 bg-transparent border-b border-border/80 text-[13px] font-semibold text-foreground outline-none placeholder:text-muted-foreground/40"
-                      />
-                      <button
-                        onClick={commitName}
-                        className="shrink-0 size-5 rounded flex items-center justify-center text-violet-500 hover:bg-violet-100 dark:hover:bg-violet-900/30"
-                      >
-                        <Check className="size-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startEditName();
-                      }}
-                      className="group/name inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <span className="text-[13px] font-semibold text-foreground/85 group-hover/name:text-foreground transition-colors">
-                        {displayName}
-                      </span>
-                      <Pencil className="size-2.5 text-muted-foreground/30 opacity-0 group-hover/name:opacity-100 transition-opacity" />
-                    </span>
-                  )}
-                </div>
-
-                {/* Collapse arrow */}
-                <motion.div
-                  initial={{ opacity: 0, y: -2 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="shrink-0 size-6 rounded-full flex items-center justify-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-white transition-colors"
                 >
-                  <ChevronUp className="size-3.5 text-muted-foreground/50" />
-                </motion.div>
+                  <ChevronUp className="size-4" />
+                </button>
               </div>
 
-              {/* ── Expandable content ── */}
-              <div className="pt-2" onClick={(e) => e.stopPropagation()}>
-                {/* Avatar picker */}
-                <AnimatePresence>
-                  {avatarPickerOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.15, ease: 'easeInOut' }}
-                      className="overflow-hidden"
+              {/* Name Input */}
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1 block">
+                  Nickname
+                </label>
+                {editingName ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={nameInputRef}
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && commitName()}
+                      onBlur={commitName}
+                      maxLength={20}
+                      className="flex-1 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm text-slate-700 dark:text-white focus:border-cyan-500/50 outline-none"
+                    />
+                    <button
+                      onClick={commitName}
+                      className="p-1 rounded bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/30"
                     >
-                      <div className="p-1 pb-2.5 flex items-center gap-1.5 flex-wrap">
-                        {AVATAR_OPTIONS.map((url) => (
-                          <button
-                            key={url}
-                            onClick={() => setAvatar(url)}
-                            className={cn(
-                              'size-7 rounded-full overflow-hidden bg-gray-50 dark:bg-gray-800 cursor-pointer transition-all duration-150',
-                              'hover:scale-110 active:scale-95',
-                              avatar === url
-                                ? 'ring-2 ring-violet-400 dark:ring-violet-500 ring-offset-0'
-                                : 'hover:ring-1 hover:ring-muted-foreground/30',
-                            )}
-                          >
-                            <img src={url} alt="" className="size-full" />
-                          </button>
-                        ))}
-                        <label
-                          className={cn(
-                            'size-7 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 border border-dashed',
-                            'hover:scale-110 active:scale-95',
-                            isCustomAvatar(avatar)
-                              ? 'ring-2 ring-violet-400 dark:ring-violet-500 ring-offset-0 border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/30'
-                              : 'border-muted-foreground/30 text-muted-foreground/50 hover:border-muted-foreground/50',
-                          )}
-                          onClick={() => avatarInputRef.current?.click()}
-                          title={t('profile.uploadAvatar')}
-                        >
-                          <ImagePlus className="size-3" />
-                        </label>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      <Check className="size-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={startEditName}
+                    className="group/edit flex items-center gap-2 cursor-pointer py-1"
+                  >
+                    <span className="text-lg font-bold text-slate-800 dark:text-white tracking-tight">
+                      {displayName}
+                    </span>
+                    <Pencil className="size-3 text-slate-400 dark:text-slate-600 group-hover/edit:text-cyan-500 transition-colors" />
+                  </div>
+                )}
+              </div>
 
-                {/* Bio */}
+              {/* Avatar Picker */}
+              <AnimatePresence>
+                {avatarPickerOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-2 pb-1 flex gap-2 flex-wrap">
+                      {AVATAR_OPTIONS.map((url) => (
+                        <button
+                          key={url}
+                          onClick={() => setAvatar(url)}
+                          className={cn(
+                            'size-8 rounded-full overflow-hidden transition-all hover:scale-110',
+                            avatar === url ? 'ring-2 ring-cyan-500' : 'ring-1 ring-slate-200 dark:ring-white/10',
+                          )}
+                        >
+                          <img src={url} alt="" className="size-full" />
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => avatarInputRef.current?.click()}
+                        className="size-8 rounded-full border border-dashed border-slate-300 dark:border-white/20 flex items-center justify-center hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all"
+                      >
+                        <ImagePlus className="size-3.5 text-cyan-600 dark:text-cyan-400" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Bio */}
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1 block">
+                  Learning Goal / Bio
+                </label>
                 <UITextarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder={t('profile.bioPlaceholder')}
-                  maxLength={200}
                   rows={2}
-                  className="resize-none border-border/40 bg-transparent min-h-[72px] !text-[13px] !leading-relaxed placeholder:!text-[11px] placeholder:!leading-relaxed focus-visible:ring-1 focus-visible:ring-border/60"
+                  className="resize-none bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 focus:border-cyan-500/30 min-h-[60px]"
                 />
               </div>
             </div>
@@ -982,7 +821,6 @@ function GreetingBar() {
   );
 }
 
-// ─── Classroom Card — clean, minimal style ──────────────────────
 function ClassroomCard({
   classroom,
   slide,
@@ -995,7 +833,7 @@ function ClassroomCard({
 }: {
   classroom: StageListItem;
   slide?: Slide;
-  formatDate: (ts: number) => string;
+  formatDate: (ts: string | number) => string;
   onDelete: (id: string, e: React.MouseEvent) => void;
   confirmingDelete: boolean;
   onConfirmDelete: () => void;
@@ -1017,115 +855,85 @@ function ClassroomCard({
   }, []);
 
   return (
-    <div className="group cursor-pointer" onClick={confirmingDelete ? undefined : onClick}>
-      {/* Thumbnail — large radius, no border, subtle bg */}
+    <div
+      className="group relative flex flex-col cursor-pointer"
+      onClick={confirmingDelete ? undefined : onClick}
+    >
+      {/* Thumbnail */}
       <div
         ref={thumbRef}
-        className="relative w-full aspect-[16/9] rounded-2xl bg-slate-100 dark:bg-slate-800/80 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02]"
+        className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-white/5 shadow-lg group-hover:shadow-cyan-500/20 dark:group-hover:shadow-cyan-900/20 group-hover:border-cyan-500/30 dark:group-hover:border-white/20 transition-all duration-300"
       >
-        {slide && thumbWidth > 0 ? (
-          <ThumbnailSlide
-            slide={slide}
-            size={thumbWidth}
-            viewportSize={slide.viewportSize ?? 1000}
-            viewportRatio={slide.viewportRatio ?? 0.5625}
-          />
-        ) : !slide ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="size-12 rounded-2xl bg-gradient-to-br from-violet-100 to-blue-100 dark:from-violet-900/30 dark:to-blue-900/30 flex items-center justify-center">
-              <span className="text-xl opacity-50">📄</span>
-            </div>
-          </div>
-        ) : null}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-100 dark:from-[#060b19] via-transparent to-transparent opacity-60 z-10" />
 
-        {/* Delete — top-right, only on hover */}
+        {slide && thumbWidth > 0 ? (
+          <div className="opacity-80 group-hover:opacity-100 transition-opacity duration-300 scale-100 group-hover:scale-105 transition-transform">
+            <ThumbnailSlide
+              slide={slide}
+              size={thumbWidth}
+              viewportSize={slide.viewportSize ?? 1000}
+              viewportRatio={slide.viewportRatio ?? 0.5625}
+            />
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Sparkles className="size-8 text-slate-300 dark:text-white/10" />
+          </div>
+        )}
+
+        {/* Delete Overlay */}
         <AnimatePresence>
-          {!confirmingDelete && (
+          {confirmingDelete ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              className="absolute inset-0 z-20 bg-white/90 dark:bg-[#060b19]/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center"
+              onClick={(e) => e.stopPropagation()}
             >
+              <p className="text-xs font-semibold text-red-500 dark:text-red-300 mb-3">
+                {t('classroom.deleteConfirmTitle')}
+              </p>
+              <div className="flex gap-2 w-full">
+                <button
+                  onClick={onCancelDelete}
+                  className="flex-1 py-1.5 rounded bg-slate-100 dark:bg-white/10 text-xs text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onConfirmDelete}
+                  className="flex-1 py-1.5 rounded bg-red-500 dark:bg-red-600/80 text-xs text-white hover:bg-red-600 dark:hover:bg-red-500"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div>
               <Button
                 size="icon"
                 variant="ghost"
-                className="absolute top-2 right-2 size-7 opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 hover:bg-destructive/80 text-white hover:text-white backdrop-blur-sm rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(classroom.id, e);
-                }}
+                className="absolute top-2 right-2 size-8 bg-white/60 dark:bg-black/40 hover:bg-red-500/90 text-slate-600 dark:text-white hover:text-white opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm rounded-lg"
+                onClick={(e) => onDelete(classroom.id, e)}
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-4" />
               </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Inline delete confirmation overlay */}
-        <AnimatePresence>
-          {confirmingDelete && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/50 backdrop-blur-[6px]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <span className="text-[13px] font-medium text-white/90">
-                {t('classroom.deleteConfirmTitle')}?
-              </span>
-              <div className="flex gap-2">
-                <button
-                  className="px-3.5 py-1 rounded-lg text-[12px] font-medium bg-white/15 text-white/80 hover:bg-white/25 backdrop-blur-sm transition-colors"
-                  onClick={onCancelDelete}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  className="px-3.5 py-1 rounded-lg text-[12px] font-medium bg-red-500/90 text-white hover:bg-red-500 transition-colors"
-                  onClick={onConfirmDelete}
-                >
-                  {t('classroom.delete')}
-                </button>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Info — outside the thumbnail */}
-      <div className="mt-2.5 px-1 flex items-center gap-2">
-        <span className="shrink-0 inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/30 px-2 py-0.5 text-[11px] font-medium text-violet-600 dark:text-violet-400">
-          {classroom.sceneCount} {t('classroom.slides')} · {formatDate(classroom.updatedAt)}
-        </span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <p className="font-medium text-[15px] truncate text-foreground/90 min-w-0">
-              {classroom.name}
-            </p>
-          </TooltipTrigger>
-          <TooltipContent
-            side="bottom"
-            sideOffset={4}
-            className="!max-w-[min(90vw,32rem)] break-words whitespace-normal"
-          >
-            <div className="flex items-center gap-1.5">
-              <span className="break-all">{classroom.name}</span>
-              <button
-                className="shrink-0 p-0.5 rounded hover:bg-foreground/10 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigator.clipboard.writeText(classroom.name);
-                  toast.success(t('classroom.nameCopied'));
-                }}
-              >
-                <Copy className="size-3 opacity-60" />
-              </button>
-            </div>
-          </TooltipContent>
-        </Tooltip>
+      {/* Info */}
+      <div className="mt-3 px-1">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors mb-1">
+          {classroom.name}
+        </h3>
+        <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium uppercase tracking-wide">
+          <span>{classroom.sceneCount} Slides</span>
+          <span className="size-0.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+          <span>{formatDate(classroom.updatedAt)}</span>
+        </div>
       </div>
     </div>
   );
