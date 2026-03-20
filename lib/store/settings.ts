@@ -950,7 +950,7 @@ export const useSettingsStore = create<SettingsState>()(
 
         // v7 -> v8: Migrate deprecated Pro model
         if (version < 8) {
-          if (state.providerId === 'openrouter' && (state.modelId === 'google/gemini-2.0-pro-exp-02-05:free' || state.modelId === 'google/gemini-2.0-pro-exp-02-05')) {
+          if (state.providerId === 'openrouter' && (state.modelId === 'google/gemini-2.5-flash' || state.modelId === 'google/gemini-2.5-flash')) {
             state.modelId = 'google/gemini-2.5-flash';
           }
         }

@@ -410,8 +410,8 @@ function HomePage() {
         <div className="relative mb-6 group cursor-default">
           <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
           <motion.img
-            src="/logo-horizontal.jpeg"
-            alt="Miyasensei"
+            src="/logo-horizontal.svg"
+            alt="MiyaSensei Logo"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{
