@@ -20,22 +20,24 @@ import { ChatArea, type ChatAreaRef } from '@/components/chat/chat-area';
 import { agentsToParticipants, useAgentRegistry } from '@/lib/orchestration/registry/store';
 import type { AgentConfig } from '@/lib/orchestration/registry/types';
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogTitle,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from '@/components/ui/alert-dialog';
-import { AlertTriangle } from 'lucide-react';
-import { VisuallyHidden } from 'radix-ui';
+  Menu,
+  MessageSquare,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { AgentAvatar } from '@/components/agent/agent-avatar';
 
 /**
- * Stage Component
- *
- * The main container for the classroom/course.
- * Combines sidebar (scene navigation) and content area (scene viewer).
- * Supports two modes: autonomous and playback.
+ * Stage Component - Miyasensei Layout
+ * 
+ * Implements the 3-panel layout:
+ * - Left: AI Teacher Panel (Avatar + Transcript)
+ * - Right: Slides Panel (Canvas)
+ * - Bottom: Integrated Chat & Quiz (part of Left Panel flow)
  */
 export function Stage({
   onRetryOutline,
@@ -49,52 +51,49 @@ export function Stage({
 
   const currentScene = getCurrentScene();
 
-  // Layout state from settings store (persisted via localStorage)
+  // Layout state from settings store
   const sidebarCollapsed = useSettingsStore((s) => s.sidebarCollapsed);
   const setSidebarCollapsed = useSettingsStore((s) => s.setSidebarCollapsed);
-  const chatAreaWidth = useSettingsStore((s) => s.chatAreaWidth);
-  const setChatAreaWidth = useSettingsStore((s) => s.setChatAreaWidth);
+  // Chat collapsed state is now irrelevant as it's always visible in the new layout, 
+  // but we keep the state to satisfy CanvasArea props if needed.
   const chatAreaCollapsed = useSettingsStore((s) => s.chatAreaCollapsed);
   const setChatAreaCollapsed = useSettingsStore((s) => s.setChatAreaCollapsed);
 
   // PlaybackEngine state
   const [engineMode, setEngineMode] = useState<EngineMode>('idle');
-  const [playbackCompleted, setPlaybackCompleted] = useState(false); // Distinguishes "never played" idle from "finished" idle
-  const [lectureSpeech, setLectureSpeech] = useState<string | null>(null); // From PlaybackEngine (lecture)
-  const [liveSpeech, setLiveSpeech] = useState<string | null>(null); // From buffer (discussion/QA)
-  const [speechProgress, setSpeechProgress] = useState<number | null>(null); // StreamBuffer reveal progress (0–1)
+  const [playbackCompleted, setPlaybackCompleted] = useState(false);
+  const [lectureSpeech, setLectureSpeech] = useState<string | null>(null);
+  const [liveSpeech, setLiveSpeech] = useState<string | null>(null);
+  const [speechProgress, setSpeechProgress] = useState<number | null>(null);
   const [discussionTrigger, setDiscussionTrigger] = useState<TriggerEvent | null>(null);
 
-  // Speaking agent tracking (Issue 2)
+  // Speaking agent tracking
   const [speakingAgentId, setSpeakingAgentId] = useState<string | null>(null);
 
-  // Thinking state (Issue 5)
+  // Thinking state
   const [thinkingState, setThinkingState] = useState<{
     stage: string;
     agentId?: string;
   } | null>(null);
 
-  // Cue user state (Issue 7)
+  // Cue user state
   const [isCueUser, setIsCueUser] = useState(false);
 
-  // End flash state (Issue 3)
+  // End flash state
   const [showEndFlash, setShowEndFlash] = useState(false);
   const [endFlashSessionType, setEndFlashSessionType] = useState<'qa' | 'discussion'>('discussion');
 
-  // Streaming state for stop button (Issue 1)
+  // Streaming state for stop button
   const [chatIsStreaming, setChatIsStreaming] = useState(false);
   const [chatSessionType, setChatSessionType] = useState<string | null>(null);
 
-  // Topic pending state: session is soft-paused, bubble stays visible, waiting for user input
+  // Topic pending state
   const [isTopicPending, setIsTopicPending] = useState(false);
 
-  // Active bubble ID for playback highlight in chat area (Issue 8)
+  // Active bubble ID for playback highlight
   const [activeBubbleId, setActiveBubbleId] = useState<string | null>(null);
 
-  // Scene switch confirmation dialog state
-  const [pendingSceneId, setPendingSceneId] = useState<string | null>(null);
-
-  // Whiteboard state (from canvas store so AI tools can open it)
+  // Whiteboard state
   const whiteboardOpen = useCanvasStore.use.whiteboardOpen();
   const setWhiteboardOpen = useCanvasStore.use.setWhiteboardOpen();
 
@@ -663,222 +662,240 @@ export function Stage({
       }
     : null;
 
-  // Calculate scene viewer height (subtract Header's 80px height)
-  const sceneViewerHeight = (() => {
-    const headerHeight = 80; // Header h-20 = 80px
-    if (mode === 'playback') {
-      return `calc(100% - ${headerHeight + 192}px)`; // Header + Roundtable
-    }
-    return `calc(100% - ${headerHeight}px)`;
-  })();
 
   return (
-    <div className="flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-900">
-      {/* Scene Sidebar */}
-      <SceneSidebar
-        collapsed={sidebarCollapsed}
-        onCollapseChange={setSidebarCollapsed}
-        onSceneSelect={gatedSceneSwitch}
-        onRetryOutline={onRetryOutline}
-      />
+    <div className="flex-1 w-full h-full bg-[#060b19] overflow-hidden">
+      {/* Desktop Layout - Grid */}
+      <div className="hidden md:flex w-full h-full">
+        {/* Sidebar (Optional/Collapsible Scene List) */}
+        {!sidebarCollapsed && (
+          <div className="w-[280px] shrink-0 border-r border-white/10 bg-[#060b19]/95 backdrop-blur z-20">
+            <SceneSidebar
+              collapsed={false}
+              onCollapseChange={setSidebarCollapsed}
+              onSceneSelect={gatedSceneSwitch}
+              onRetryOutline={onRetryOutline}
+            />
+          </div>
+        )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative">
-        {/* Header */}
-        <Header currentSceneTitle={currentScene?.title || ''} />
+        {/* Left Panel - AI Teacher & Chat */}
+        <div className="flex flex-col border-r border-white/10 bg-[#060b19]/90 backdrop-blur min-w-[350px] max-w-[450px] w-1/3 relative z-10">
+          {/* Teacher Header */}
+          <div className="shrink-0 h-16 flex items-center justify-between px-4 border-b border-white/5 bg-[#060b19]/50">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <AgentAvatar className="size-10 ring-2 ring-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.4)]" />
+                <div className="absolute -bottom-1 -right-1 size-3 rounded-full bg-green-500 ring-2 ring-[#060b19] animate-pulse" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-white tracking-wide">Miyasensei</span>
+                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider">AI Tutor Active</span>
+              </div>
+            </div>
+            
+            <button 
+               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+               className="p-2 rounded-lg hover:bg-white/5 text-white/60 transition-colors"
+               title={sidebarCollapsed ? "Show Syllabus" : "Hide Syllabus"}
+            >
+               <Menu className="size-5" />
+            </button>
+          </div>
 
-        {/* Canvas Area */}
-        <div
-          className="overflow-hidden relative flex-1 min-h-0 isolate"
-          style={{
-            height: sceneViewerHeight,
-          }}
-          suppressHydrationWarning
-        >
-          <CanvasArea
-            currentScene={currentScene}
-            currentSceneIndex={currentSceneIndex}
-            scenesCount={totalScenesCount}
-            mode={mode}
-            engineState={canvasEngineState}
-            isLiveSession={
-              chatIsStreaming || isTopicPending || engineMode === 'live' || !!chatSessionType
-            }
-            whiteboardOpen={whiteboardOpen}
-            sidebarCollapsed={sidebarCollapsed}
-            chatCollapsed={chatAreaCollapsed}
-            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-            onToggleChat={() => setChatAreaCollapsed(!chatAreaCollapsed)}
-            onPrevSlide={handlePreviousScene}
-            onNextSlide={handleNextScene}
-            onPlayPause={handlePlayPause}
-            onWhiteboardClose={handleWhiteboardToggle}
-            showStopDiscussion={
-              engineMode === 'live' ||
-              (chatIsStreaming && (chatSessionType === 'qa' || chatSessionType === 'discussion'))
-            }
-            onStopDiscussion={handleStopDiscussion}
-            hideToolbar={mode === 'playback'}
-            isPendingScene={isPendingScene}
-            isGenerationFailed={
-              isPendingScene && failedOutlines.some((f) => f.id === generatingOutlines[0]?.id)
-            }
-            onRetryGeneration={
-              onRetryOutline && generatingOutlines[0]
-                ? () => onRetryOutline(generatingOutlines[0].id)
-                : undefined
-            }
-          />
+          {/* Chat / Interaction Area */}
+          <div className="flex-1 min-h-0 relative">
+            <ChatArea
+              ref={chatAreaRef}
+              className="w-full h-full border-0 bg-transparent"
+              width={undefined} // Force fluid width
+              collapsed={false}
+              activeBubbleId={activeBubbleId}
+              onActiveBubble={(id) => setActiveBubbleId(id)}
+              currentSceneId={currentSceneId}
+              onLiveSpeech={(text, agentId) => {
+                const epoch = sceneEpochRef.current;
+                queueMicrotask(() => {
+                  if (sceneEpochRef.current !== epoch) return;
+                  setLiveSpeech(text);
+                  if (agentId !== undefined) setSpeakingAgentId(agentId);
+                  
+                  if (text !== null || agentId) {
+                    setChatIsStreaming(true);
+                    setChatSessionType(chatAreaRef.current?.getActiveSessionType?.() ?? null);
+                    setIsTopicPending(false);
+                  } else if (text === null && agentId === null) {
+                    setChatIsStreaming(false);
+                  }
+                });
+              }}
+              onSpeechProgress={(ratio) => {
+                const epoch = sceneEpochRef.current;
+                queueMicrotask(() => {
+                  if (sceneEpochRef.current !== epoch) return;
+                  setSpeechProgress(ratio);
+                });
+              }}
+              onThinking={(state) => {
+                const epoch = sceneEpochRef.current;
+                queueMicrotask(() => {
+                  if (sceneEpochRef.current !== epoch) return;
+                  setThinkingState(state);
+                });
+              }}
+              onCueUser={(_fromAgentId, _prompt) => setIsCueUser(true)}
+              onStopSession={doSessionCleanup}
+            />
+          </div>
         </div>
 
-        {/* Roundtable Area */}
-        {mode === 'playback' && (
-          <Roundtable
-            mode={mode}
-            initialParticipants={participants}
-            playbackView={playbackView}
-            currentSpeech={liveSpeech}
-            lectureSpeech={lectureSpeech}
-            idleText={firstSpeechText}
-            playbackCompleted={playbackCompleted}
-            discussionRequest={discussionRequest}
-            engineMode={engineMode}
-            isStreaming={chatIsStreaming}
-            sessionType={
-              chatSessionType === 'qa'
-                ? 'qa'
-                : chatSessionType === 'discussion'
-                  ? 'discussion'
-                  : undefined
-            }
-            speakingAgentId={speakingAgentId}
-            speechProgress={speechProgress}
-            showEndFlash={showEndFlash}
-            endFlashSessionType={endFlashSessionType}
-            thinkingState={thinkingState}
-            isCueUser={isCueUser}
-            isTopicPending={isTopicPending}
-            onMessageSend={(msg) => {
-              // Clear soft-paused state — user is continuing the topic
-              if (isTopicPending) {
-                setIsTopicPending(false);
-                setLiveSpeech(null);
-                setSpeakingAgentId(null);
-              }
-              // User interrupts during playback — handleUserInterrupt triggers
-              // onUserInterrupt callback which already calls sendMessage, so skip
-              // the direct sendMessage below to avoid sending twice.
-              // Include 'paused' because onInputActivate pauses the engine before
-              // the user finishes typing — without this the interrupt position
-              // would never be saved and resuming after QA skips to the next sentence.
-              if (
-                engineRef.current &&
-                (engineMode === 'playing' || engineMode === 'live' || engineMode === 'paused')
-              ) {
-                engineRef.current.handleUserInterrupt(msg);
-              } else {
-                chatAreaRef.current?.sendMessage(msg);
-              }
-              // Auto-switch to chat tab when user sends a message
-              chatAreaRef.current?.switchToTab('chat');
-              setIsCueUser(false);
-              // Immediately mark streaming for synchronized stop button
-              setChatIsStreaming(true);
-              setChatSessionType(chatSessionType || 'qa');
-              // Optimistic thinking: show thinking dots immediately so there's
-              // no blank gap between userMessage expiry and the SSE thinking event.
-              // The real SSE event will overwrite this with the same or updated value.
-              setThinkingState({ stage: 'director' });
-            }}
-            onDiscussionStart={() => {
-              // User clicks "Join" on ProactiveCard
-              engineRef.current?.confirmDiscussion();
-            }}
-            onDiscussionSkip={() => {
-              // User clicks "Skip" on ProactiveCard
-              engineRef.current?.skipDiscussion();
-            }}
-            onStopDiscussion={handleStopDiscussion}
-            onInputActivate={async () => {
-              // Soft-pause QA/Discussion if streaming (opening input = implicit pause)
-              if (chatIsStreaming) {
-                await doSoftPause();
-              }
-              // Also pause playback engine
-              if (engineRef.current && (engineMode === 'playing' || engineMode === 'live')) {
-                engineRef.current.pause();
-              }
-            }}
-            onSoftPause={doSoftPause}
-            onResumeTopic={doResumeTopic}
-            onPlayPause={handlePlayPause}
-            totalActions={totalActions}
-            currentActionIndex={0}
-            currentSceneIndex={currentSceneIndex}
-            scenesCount={totalScenesCount}
-            whiteboardOpen={whiteboardOpen}
-            sidebarCollapsed={sidebarCollapsed}
-            chatCollapsed={chatAreaCollapsed}
-            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-            onToggleChat={() => setChatAreaCollapsed(!chatAreaCollapsed)}
-            onPrevSlide={handlePreviousScene}
-            onNextSlide={handleNextScene}
-            onWhiteboardClose={handleWhiteboardToggle}
-          />
-        )}
+        {/* Right Panel - Slides */}
+        <div className="flex-1 flex flex-col min-w-0 bg-black/40 relative">
+          {/* Header Bar for Slides */}
+          <div className="shrink-0 h-14 flex items-center justify-between px-6 border-b border-white/5 bg-[#060b19]">
+             <div className="flex items-center gap-2 overflow-hidden">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  LESSON {currentSceneIndex + 1}
+                </span>
+                <h1 className="text-sm font-medium text-white/90 truncate max-w-[300px]">
+                  {currentScene?.title || t('stage.generatingNextPage')}
+                </h1>
+             </div>
+             
+             <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 border border-white/5">
+                <button 
+                  onClick={handlePreviousScene}
+                  className="p-1.5 rounded-full hover:bg-white/10 text-white/70 disabled:opacity-30 transition-colors"
+                  disabled={currentSceneIndex <= 0}
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <span className="text-xs font-mono text-white/50 px-2 min-w-[60px] text-center">
+                  {currentSceneIndex + 1} / {totalScenesCount}
+                </span>
+                <button 
+                  onClick={handleNextScene}
+                  className="p-1.5 rounded-full hover:bg-white/10 text-white/70 disabled:opacity-30 transition-colors"
+                  disabled={currentSceneIndex >= totalScenesCount - 1 && !hasNextPending}
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+             </div>
+          </div>
+
+          {/* Canvas */}
+          <div className="flex-1 relative overflow-hidden p-4">
+             <div className="w-full h-full rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+                <CanvasArea
+                  currentScene={currentScene}
+                  currentSceneIndex={currentSceneIndex}
+                  scenesCount={totalScenesCount}
+                  mode={mode}
+                  engineState={canvasEngineState}
+                  isLiveSession={chatIsStreaming || isTopicPending || engineMode === 'live' || !!chatSessionType}
+                  whiteboardOpen={whiteboardOpen}
+                  // Hide standard toolbar as we have the header
+                  hideToolbar={false} 
+                  sidebarCollapsed={true} // Force collapsed in internal logic
+                  chatCollapsed={true} // Force collapsed in internal logic
+                  onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  onToggleChat={() => {}}
+                  onPrevSlide={handlePreviousScene}
+                  onNextSlide={handleNextScene}
+                  onPlayPause={handlePlayPause}
+                  onWhiteboardClose={handleWhiteboardToggle}
+                  showStopDiscussion={engineMode === 'live' || (chatIsStreaming && (chatSessionType === 'qa' || chatSessionType === 'discussion'))}
+                  onStopDiscussion={handleStopDiscussion}
+                  isPendingScene={isPendingScene}
+                  isGenerationFailed={isPendingScene && failedOutlines.some((f) => f.id === generatingOutlines[0]?.id)}
+                  onRetryGeneration={onRetryOutline && generatingOutlines[0] ? () => onRetryOutline(generatingOutlines[0].id) : undefined}
+                />
+             </div>
+          </div>
+        </div>
       </div>
 
-      {/* Chat Area */}
-      <ChatArea
-        ref={chatAreaRef}
-        width={chatAreaWidth}
-        onWidthChange={setChatAreaWidth}
-        collapsed={chatAreaCollapsed}
-        onCollapseChange={setChatAreaCollapsed}
-        activeBubbleId={activeBubbleId}
-        onActiveBubble={(id) => setActiveBubbleId(id)}
-        currentSceneId={currentSceneId}
-        onLiveSpeech={(text, agentId) => {
-          // Capture epoch at call time — discard if scene has changed since
-          const epoch = sceneEpochRef.current;
-          // Use queueMicrotask to let any pending scene-switch reset settle first
-          queueMicrotask(() => {
-            if (sceneEpochRef.current !== epoch) return; // stale — scene changed
-            setLiveSpeech(text);
-            if (agentId !== undefined) {
-              setSpeakingAgentId(agentId);
-            }
-            if (text !== null || agentId) {
-              setChatIsStreaming(true);
-              setChatSessionType(chatAreaRef.current?.getActiveSessionType?.() ?? null);
-              setIsTopicPending(false);
-            } else if (text === null && agentId === null) {
-              setChatIsStreaming(false);
-              // Don't clear chatSessionType here — it's needed by the stop
-              // button when director cues user (cue_user → done → liveSpeech null).
-              // It gets properly cleared in doSessionCleanup and scene change.
-            }
-          });
-        }}
-        onSpeechProgress={(ratio) => {
-          const epoch = sceneEpochRef.current;
-          queueMicrotask(() => {
-            if (sceneEpochRef.current !== epoch) return;
-            setSpeechProgress(ratio);
-          });
-        }}
-        onThinking={(state) => {
-          const epoch = sceneEpochRef.current;
-          queueMicrotask(() => {
-            if (sceneEpochRef.current !== epoch) return;
-            setThinkingState(state);
-          });
-        }}
-        onCueUser={(_fromAgentId, _prompt) => {
-          setIsCueUser(true);
-        }}
-        onStopSession={doSessionCleanup}
-      />
+      {/* Mobile Layout - Tabs */}
+      <div className="md:hidden flex flex-col w-full h-full">
+        <Tabs defaultValue="teacher" className="flex-1 flex flex-col min-h-0 bg-[#060b19]">
+           <div className="shrink-0 px-4 py-2 border-b border-white/10 bg-[#060b19] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <AgentAvatar className="size-8" />
+                 <span className="font-bold text-white text-sm">Miyasensei</span>
+              </div>
+              <TabsList className="bg-white/5 border border-white/5">
+                 <TabsTrigger value="teacher" className="text-xs">Teacher</TabsTrigger>
+                 <TabsTrigger value="slides" className="text-xs">Slides</TabsTrigger>
+              </TabsList>
+           </div>
+           
+           <TabsContent value="teacher" className="flex-1 min-h-0 relative m-0">
+               {/* Mobile Chat Area */}
+               <ChatArea
+                  ref={chatAreaRef}
+                  className="w-full h-full border-0 bg-transparent"
+                  width={undefined}
+                  collapsed={false}
+                  activeBubbleId={activeBubbleId}
+                  onActiveBubble={(id) => setActiveBubbleId(id)}
+                  currentSceneId={currentSceneId}
+                  onLiveSpeech={(text, agentId) => {
+                    setLiveSpeech(text);
+                    if (agentId !== undefined) setSpeakingAgentId(agentId);
+                    if (text !== null || agentId) {
+                       setChatIsStreaming(true);
+                       setChatSessionType(chatAreaRef.current?.getActiveSessionType?.() ?? null);
+                       setIsTopicPending(false);
+                    } else if (text === null && agentId === null) {
+                       setChatIsStreaming(false);
+                    }
+                  }}
+                  onSpeechProgress={setSpeechProgress}
+                  onThinking={setThinkingState}
+                  onCueUser={() => setIsCueUser(true)}
+                  onStopSession={doSessionCleanup}
+                />
+           </TabsContent>
+
+           <TabsContent value="slides" className="flex-1 min-h-0 relative m-0 flex flex-col">
+              <div className="flex-1 relative">
+                 <CanvasArea
+                    currentScene={currentScene}
+                    currentSceneIndex={currentSceneIndex}
+                    scenesCount={totalScenesCount}
+                    mode={mode}
+                    engineState={canvasEngineState}
+                    isLiveSession={chatIsStreaming}
+                    whiteboardOpen={whiteboardOpen}
+                    hideToolbar={false}
+                    sidebarCollapsed={true}
+                    chatCollapsed={true}
+                    onToggleSidebar={() => {}}
+                    onToggleChat={() => {}}
+                    onPrevSlide={handlePreviousScene}
+                    onNextSlide={handleNextScene}
+                    onPlayPause={handlePlayPause}
+                    onWhiteboardClose={handleWhiteboardToggle}
+                    showStopDiscussion={false}
+                    onStopDiscussion={handleStopDiscussion}
+                    isPendingScene={isPendingScene}
+                    isGenerationFailed={isPendingScene && failedOutlines.some((f) => f.id === generatingOutlines[0]?.id)}
+                    onRetryGeneration={onRetryOutline && generatingOutlines[0] ? () => onRetryOutline(generatingOutlines[0].id) : undefined}
+                 />
+              </div>
+              {/* Mobile Slide Controls Bar */}
+              <div className="shrink-0 h-12 flex items-center justify-between px-4 border-t border-white/10 bg-[#060b19]">
+                  <button onClick={handlePreviousScene} disabled={currentSceneIndex <= 0} className="p-2 text-white/70 disabled:opacity-30">
+                     <ChevronLeft className="size-5" />
+                  </button>
+                  <span className="text-xs font-mono text-white/50">{currentSceneIndex + 1} / {totalScenesCount}</span>
+                  <button onClick={handleNextScene} disabled={currentSceneIndex >= totalScenesCount - 1} className="p-2 text-white/70 disabled:opacity-30">
+                     <ChevronRight className="size-5" />
+                  </button>
+              </div>
+           </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Scene switch confirmation dialog */}
       <AlertDialog
