@@ -410,7 +410,7 @@ function HomePage() {
         <div className="relative mb-6 group cursor-default">
           <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
           <motion.img
-            src="/logo-horizontal.svg"
+            src="/logo-horizontal.jpeg"
             alt="MiyaSensei Logo"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -420,7 +420,7 @@ function HomePage() {
               stiffness: 200,
               damping: 20,
             }}
-            className="relative h-14 md:h-20 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_20px_rgba(0,0,0,0.5)] ring-1 ring-black/5 dark:ring-white/10"
+            className="relative h-16 md:h-24 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_20px_rgba(0,0,0,0.5)] ring-1 ring-black/5 dark:ring-white/10"
           />
         </div>
 

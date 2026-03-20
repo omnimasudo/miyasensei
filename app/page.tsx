@@ -46,11 +46,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
              <div className="relative">
-                <img src="/logo-horizontal.svg" alt="MiyaSensei Logo" className="relative h-8 w-auto rounded-lg shadow-sm" />
+                <img src="/logo-horizontal.jpeg" alt="MiyaSensei Logo" className="relative h-12 w-auto rounded-lg shadow-sm" />
              </div>
-             <span className="font-bold text-lg tracking-tight text-slate-900">
-               MiyaSensei
-             </span>
           </Link>
 
           {/* Desktop Nav */}
