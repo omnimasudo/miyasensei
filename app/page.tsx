@@ -93,44 +93,59 @@ export default function LandingPage() {
       </nav>
       
       {/* ═══ Hero Section ═══ */}
-      <section className="relative pt-32 pb-32 px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+      <div className="relative w-full overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute top-0 left-0 w-full h-full object-cover z-0"
         >
-          <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm font-medium rounded-full border-blue-200 bg-blue-50 text-blue-700 shadow-sm">
-            <Sparkles className="w-3 h-3 mr-2 inline-block text-blue-500" />
-            AI-Powered Interactive Learning
-          </Badge>
-          
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 text-slate-900">
-            Learn anything with <br className="hidden md:block" />
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">AI teachers</span>
-          </h1>
-          
-          <p className="max-w-2xl mx-auto text-xl text-slate-600 mb-10 leading-relaxed">
-            Generate a complete classroom from any topic in seconds
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/dashboard">
-              <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-slate-900 hover:bg-slate-800 text-white border-0 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
-                Start Learning
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="#how-it-works">
-              <Button variant="outline" size="lg" className="h-14 px-8 text-lg rounded-full border-slate-200 bg-white hover:bg-slate-50 text-slate-900 shadow-sm hover:shadow">
-                How it works
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
-      </section>
+          <source src="/hero-section.mp4" type="video/mp4" />
+        </video>
+        {/* Overlay to ensure text contrast if video is too bright/busy */}
+        <div className="absolute inset-0 bg-white/30 z-0"></div>
+
+        <section className="relative pt-32 pb-32 px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center z-10 w-full min-h-screen flex justify-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Badge variant="outline" className="mb-6 px-4 py-1.5 text-sm font-medium rounded-full border-blue-200 bg-blue-50/80 text-blue-800 shadow-sm backdrop-blur-sm">
+              <Sparkles className="w-3 h-3 mr-2 inline-block text-blue-600" />
+              AI-Powered Interactive Learning
+            </Badge>
+            
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 text-slate-950 drop-shadow-sm">
+              Learn anything with <br className="hidden md:block" />
+              <span className="bg-gradient-to-r from-blue-700 via-purple-700 to-cyan-700 bg-clip-text text-transparent filter drop-shadow-sm">AI teachers</span>
+            </h1>
+            
+            <p className="max-w-2xl mx-auto text-xl text-slate-800 mb-10 leading-relaxed font-medium">
+              Generate a complete classroom from any topic in seconds
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/dashboard">
+                <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-slate-900 hover:bg-slate-800 text-white border-0 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                  Start Learning
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="#how-it-works">
+                <Button variant="outline" size="lg" className="h-14 px-8 text-lg rounded-full border-slate-300 bg-white/90 hover:bg-slate-50 text-slate-900 shadow-sm hover:shadow backdrop-blur-sm">
+                  How it works
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        </section>
+      </div>
+
 
       {/* ═══ Product Preview / Value Prop ═══ */}
-      <section id="features" className="py-24 border-y border-slate-100 bg-slate-50/50">
+      <section id="features" className="py-24 border-y border-slate-100 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <motion.div 
@@ -199,7 +214,7 @@ export default function LandingPage() {
                   {/* Mock Content */}
                   <div className="flex-1 flex overflow-hidden">
                      {/* Left Panel: Teacher */}
-                     <div className="w-1/3 border-r border-slate-100 p-4 flex flex-col gap-4 bg-slate-50/50">
+                     <div className="w-1/3 border-r border-slate-100 p-4 flex flex-col gap-4 bg-white/50 backdrop-blur-sm">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 mx-auto mb-2 opacity-90 shadow-md ring-2 ring-white"></div>
                         <div className="space-y-3">
                            <div className="h-2 w-3/4 bg-slate-200 rounded animate-pulse"></div>
@@ -213,7 +228,7 @@ export default function LandingPage() {
                         </div>
                      </div>
                      {/* Right Panel: Content */}
-                     <div className="w-2/3 p-6 flex flex-col">
+                     <div className="w-2/3 p-6 flex flex-col bg-white">
                         <div className="h-6 w-1/2 bg-slate-100 rounded mb-6"></div>
                         <div className="space-y-4">
                            <div className="h-32 w-full bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center">
@@ -263,7 +278,7 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ Use Cases ═══ */}
-      <section id="use-cases" className="py-24 bg-slate-50/50">
+      <section id="use-cases" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-12 text-center text-slate-900">What will you learn today?</h2>
           <div className="grid md:grid-cols-3 gap-6">

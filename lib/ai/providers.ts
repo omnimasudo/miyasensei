@@ -29,18 +29,34 @@ export interface ModelWithInfo {
  * @returns Object with providerId and modelId
  */
 export function parseModelString(modelString: string): { providerId: ProviderId; modelId: string } {
-  const parts = modelString.split('/');
-
-  if (parts.length === 2) {
+  // Support either "/" or ":" as delimiters
+  // If starts with "openrouter:" specifically handle it
+  if (modelString.startsWith('openrouter:')) {
     return {
-      providerId: parts[0] as ProviderId,
-      modelId: parts[1],
+      providerId: 'openrouter',
+      modelId: modelString.slice('openrouter:'.length),
+    };
+  }
+  
+  const slashIndex = modelString.indexOf('/');
+  if (slashIndex !== -1) {
+    return {
+      providerId: modelString.substring(0, slashIndex) as ProviderId,
+      modelId: modelString.substring(slashIndex + 1),
     };
   }
 
-  // Default to openai if no provider specified
+  const colonIndex = modelString.indexOf(':');
+  if (colonIndex !== -1) {
+    return {
+      providerId: modelString.substring(0, colonIndex) as ProviderId,
+      modelId: modelString.substring(colonIndex + 1),
+    };
+  }
+
+  // Default to openrouter if no provider specified
   return {
-    providerId: 'openai',
+    providerId: 'openrouter',
     modelId: modelString,
   };
 }
@@ -67,25 +83,29 @@ export function getModel(config: ModelConfig): ModelWithInfo {
   // Create the language model instance based on provider type
   let model: LanguageModel;
 
+  // Determine the base URL: explicitly set > provider default
+  const baseUrl = config.baseUrl || providerConfig.defaultBaseUrl;
+
   switch (providerConfig.type) {
     case 'openai':
       model = createOpenAI({
         apiKey: config.apiKey,
-        baseURL: config.baseUrl,
+        baseURL: baseUrl,
       })(config.modelId);
       break;
 
     case 'anthropic':
       model = createAnthropic({
         apiKey: config.apiKey,
-        baseURL: config.baseUrl,
+        baseURL: baseUrl,
       })(config.modelId);
       break;
 
     case 'google':
       model = createGoogleGenerativeAI({
         apiKey: config.apiKey,
-        baseURL: config.baseUrl,
+        // Google Generative AI SDK expects baseURL, NOT baseUrl
+        baseURL: baseUrl,
       })(config.modelId);
       break;
 
