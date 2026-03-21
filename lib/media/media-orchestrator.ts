@@ -33,7 +33,7 @@ export async function generateMediaForOutlines(
   stageId: string,
   abortSignal?: AbortSignal,
 ): Promise<void> {
-  const settings = useSettingsStore.getState();
+  // const settings = useSettingsStore.getState();
   const store = useMediaGenerationStore.getState();
 
   // Collect all media requests
@@ -42,8 +42,15 @@ export async function generateMediaForOutlines(
     if (!outline.mediaGenerations) continue;
     for (const mg of outline.mediaGenerations) {
       // Filter by enabled flags
+      // TEMPORARY: Force disable Image/Video generation as per request to focus on TTS
+      if (mg.type === 'image') continue; 
+      if (mg.type === 'video') continue;
+      
+      /* Original logic commented out:
       if (mg.type === 'image' && !settings.imageGenerationEnabled) continue;
       if (mg.type === 'video' && !settings.videoGenerationEnabled) continue;
+      */
+
       // Skip already completed or permanently failed (restored from DB)
       const existing = store.getTask(mg.elementId);
       if (existing?.status === 'done' || existing?.status === 'failed') continue;

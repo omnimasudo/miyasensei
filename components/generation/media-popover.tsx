@@ -59,8 +59,8 @@ const VIDEO_PROVIDER_ICONS: Record<string, string> = {
 type TabId = 'image' | 'video' | 'tts' | 'asr';
 
 const TABS: Array<{ id: TabId; icon: LucideIcon; label: string }> = [
-  { id: 'image', icon: ImageIcon, label: 'Image' },
-  { id: 'video', icon: Video, label: 'Video' },
+  // { id: 'image', icon: ImageIcon, label: 'Image' },
+  // { id: 'video', icon: Video, label: 'Video' },
   { id: 'tts', icon: Volume2, label: 'TTS' },
   { id: 'asr', icon: Mic, label: 'ASR' },
 ];
@@ -77,7 +77,8 @@ function getVoiceDisplayName(name: string, lang: string): string {
 export function MediaPopover({ onSettingsOpen }: MediaPopoverProps) {
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>('image');
+  // Default to 'tts' instead of 'image'
+  const [activeTab, setActiveTab] = useState<TabId>('tts');
   const { previewing, startPreview, stopPreview } = useTTSPreview();
 
   // ─── Store ───
@@ -239,8 +240,9 @@ export function MediaPopover({ onSettingsOpen }: MediaPopoverProps) {
     }
     setOpen(isOpen);
     if (isOpen) {
-      const first = (['image', 'video', 'tts', 'asr'] as TabId[]).find((id) => enabledMap[id]);
-      setActiveTab(first || 'image');
+      // Prioritize TTS/ASR since Image/Video are hidden
+      const first = (['tts', 'asr'] as TabId[]).find((id) => enabledMap[id]);
+      setActiveTab(first || 'tts');
     }
   };
 
@@ -256,8 +258,9 @@ export function MediaPopover({ onSettingsOpen }: MediaPopoverProps) {
           )}
         >
           <SlidersHorizontal className="size-3.5" />
-          {imageGenerationEnabled && <ImageIcon className="size-3.5" />}
-          {videoGenerationEnabled && <Video className="size-3.5" />}
+          {/* Comment out Image/Video icons in trigger button */}
+          {/* {imageGenerationEnabled && <ImageIcon className="size-3.5" />} */}
+          {/* {videoGenerationEnabled && <Video className="size-3.5" />} */}
           {ttsEnabled && <Volume2 className="size-3.5" />}
           {asrEnabled && <Mic className="size-3.5" />}
         </button>

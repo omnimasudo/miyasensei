@@ -27,7 +27,7 @@ export function resolveModel(params: {
   providerType?: string;
   requiresApiKey?: boolean;
 }): ResolvedModel {
-  const modelString = params.modelString || process.env.DEFAULT_MODEL || 'openrouter:google/gemini-2.5-flash';
+  const modelString = params.modelString || process.env.DEFAULT_MODEL || 'openrouter:google/gemini-2.5-flash-lite-preview-09-2025';
   const { providerId, modelId } = parseModelString(modelString);
 
   const clientBaseUrl = params.baseUrl || undefined;

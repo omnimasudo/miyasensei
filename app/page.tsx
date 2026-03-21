@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+// import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
 
 export default function LandingPage() {

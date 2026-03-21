@@ -85,7 +85,7 @@ export default function OpenRouterSetupPage() {
               <div className="space-y-6 max-w-lg">
                 <h2 className="text-3xl font-bold text-slate-900">Get Your API Key</h2>
                 <p className="text-slate-600 text-lg leading-relaxed">
-                  You'll need an OpenRouter account to generate a key. It takes less than 2 minutes to set up.
+                  You&apos;ll need an OpenRouter account to generate a key. It takes less than 2 minutes to set up.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <Button asChild size="lg" className="h-12 px-8 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
@@ -121,7 +121,7 @@ export default function OpenRouterSetupPage() {
         >
           <div className="text-center space-y-4">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Why Choose OpenRouter?</h2>
-            <p className="text-slate-600 text-lg max-w-2xl mx-auto">Access the world's best AI models through a single, unified platform.</p>
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto">Access the world&apos;s best AI models through a single, unified platform.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -237,7 +237,7 @@ export default function OpenRouterSetupPage() {
               <div className="flex-1 space-y-4 text-center md:text-right">
                 <h3 className="text-2xl font-bold text-slate-900">Create an API Key</h3>
                 <p className="text-slate-600 text-lg leading-relaxed">
-                  Go to the <strong>Keys</strong> section in your account dashboard. Click the "Create Key" button.
+                  Go to the <strong>Keys</strong> section in your account dashboard. Click the &quot;Create Key&quot; button.
                 </p>
                 <div className="bg-slate-900 rounded-xl p-6 text-slate-200 font-mono text-sm shadow-lg max-w-sm mx-auto md:ml-auto md:mr-0">
                    <div className="flex justify-between items-center border-b border-slate-700 pb-3 mb-3">
@@ -270,7 +270,7 @@ export default function OpenRouterSetupPage() {
               <div className="flex-1 space-y-4 text-center md:text-left">
                 <h3 className="text-2xl font-bold text-slate-900">Copy & Paste</h3>
                 <p className="text-slate-600 text-lg leading-relaxed">
-                  <strong>Important:</strong> Copy the key immediately (starting with <code>sk-or-v1-</code>). You won't be able to see it again after you close the dialog.
+                  <strong>Important:</strong> Copy the key immediately (starting with <code>sk-or-v1-</code>). You won&apos;t be able to see it again after you close the dialog.
                 </p>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-sm text-yellow-800 flex items-center gap-4 justify-center max-w-lg mx-auto shadow-sm">
                   <Terminal className="h-6 w-6 flex-shrink-0 text-yellow-600" />
@@ -298,7 +298,7 @@ export default function OpenRouterSetupPage() {
               <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-green-900">Verify Connection</h3>
                 <p className="text-slate-600 text-lg leading-relaxed max-w-md mx-auto">
-                  Click the <strong>Test Connection</strong> button in MiyaSensei settings. If successful, you're ready to start generating classrooms!
+                  Click the <strong>Test Connection</strong> button in MiyaSensei settings. If successful, you&apos;re ready to start generating classrooms!
                 </p>
               </div>
             </motion.div>

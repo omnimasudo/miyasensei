@@ -8,7 +8,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import type { LanguageModel } from 'ai';
-import { PROVIDERS, getProviderConfig } from './providers-config';
+import { getProviderConfig } from './providers-config';
 import type { ProviderId, ModelInfo, ModelConfig } from '@/lib/types/provider';
 
 // Re-export the provider registry
