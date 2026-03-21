@@ -110,8 +110,7 @@ export default function LandingPage() {
           </h1>
           
           <p className="max-w-2xl mx-auto text-xl text-slate-600 mb-10 leading-relaxed">
-            MiyaSensei transforms any topic or document into a <span className="text-slate-900 font-medium">complete interactive classroom</span>. 
-            Experience adaptive curriculums, real-time explanations, and personalized evaluations.
+            Generate a complete classroom from any topic in seconds
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

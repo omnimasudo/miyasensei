@@ -30,8 +30,8 @@ import {
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
 import { toast } from 'sonner';
-import { type ProviderId } from '@/lib/ai/providers';
-import { PROVIDERS } from '@/lib/ai/providers';
+import { type ProviderId } from '@/lib/ai/providers-config';
+import { PROVIDERS } from '@/lib/ai/providers-config';
 import { cn } from '@/lib/utils';
 import { getProviderTypeLabel } from './utils';
 import { ProviderList } from './provider-list';
@@ -153,6 +153,7 @@ const VIDEO_PROVIDER_NAMES: Record<VideoProviderId, string> = {
   kling: 'providerKling',
   veo: 'providerVeo',
   sora: 'providerSora',
+  openai: 'providerOpenAI',
 };
 
 const VIDEO_PROVIDER_ICONS: Record<VideoProviderId, string> = {
@@ -160,6 +161,7 @@ const VIDEO_PROVIDER_ICONS: Record<VideoProviderId, string> = {
   kling: '/logos/kling.svg',
   veo: '/logos/gemini.svg',
   sora: '/logos/openai.svg',
+  openai: '/logos/openai.svg',
 };
 
 interface SettingsDialogProps {

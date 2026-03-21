@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Settings, Sparkles, Moon, Sun } from 'lucide-react';
+import { Settings, Sparkles, Moon, Sun, BookOpen } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useTheme } from '@/lib/hooks/use-theme';
 import { useState } from 'react';
@@ -37,6 +37,16 @@ export function Header() {
           {/* ── Right Actions ── */}
           <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
             <nav className="flex items-center gap-2">
+              {/* API Guide Link */}
+              <Link
+                href="/docs/api-guide"
+                className="flex h-8 items-center justify-center rounded-full px-3 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition-colors border border-white/5 bg-white/5 gap-2"
+                title="API Configuration Guide"
+              >
+                <BookOpen className="size-3.5" />
+                <span className="hidden sm:inline">Guide</span>
+              </Link>
+
               {/* Language Toggle */}
               <button
                 onClick={() => setLocale(locale === 'zh-CN' ? 'en-US' : 'zh-CN')}

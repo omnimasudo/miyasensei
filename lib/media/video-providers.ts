@@ -74,6 +74,19 @@ export const VIDEO_PROVIDERS: Record<VideoProviderId, VideoProviderConfig> = {
     supportedAspectRatios: ['16:9', '1:1', '9:16'],
     maxDuration: 20,
   },
+  openai: {
+    id: 'openai',
+    name: 'OpenAI Sora',
+    requiresApiKey: true,
+    defaultBaseUrl: 'https://api.openai.com',
+    models: [
+      { id: 'sora-1.0', name: 'Sora 1.0' },
+    ],
+    supportedAspectRatios: ['16:9', '1:1', '9:16'],
+    supportedDurations: [5, 10, 20],
+    supportedResolutions: ['720p', '1080p'],
+    maxDuration: 20,
+  },
 };
 
 export async function testVideoConnectivity(
@@ -86,6 +99,12 @@ export async function testVideoConnectivity(
       return testKlingConnectivity(config);
     case 'veo':
       return testVeoConnectivity(config);
+    case 'openai':
+      // Placeholder for OpenAI Sora - not yet available
+      return {
+        success: false,
+        message: 'OpenAI Sora video generation is not yet available via API',
+      };
     default:
       return {
         success: false,
@@ -149,6 +168,8 @@ export async function generateVideo(
       return generateWithKling(config, options);
     case 'veo':
       return generateWithVeo(config, options);
+    case 'openai':
+      throw new Error('OpenAI Sora video generation is not yet available via API');
     default:
       throw new Error(`Unsupported video provider: ${config.providerId}`);
   }

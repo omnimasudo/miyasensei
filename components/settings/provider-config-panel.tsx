@@ -30,9 +30,10 @@ import {
   Wrench,
   FileText,
   Send,
+  ExternalLink,
 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
-import type { ProviderConfig } from '@/lib/ai/providers';
+import type { ProviderConfig } from '@/lib/ai/providers-config';
 import type { ProvidersConfig } from '@/lib/types/settings';
 import { formatContextWindow } from './utils';
 import { cn } from '@/lib/utils';
@@ -163,7 +164,18 @@ export function ProviderConfigPanel({
 
       {/* API Key */}
       <div className="space-y-2">
-        <Label>{t('settings.apiSecret')}</Label>
+        <div className="flex items-center justify-between">
+          <Label>{t('settings.apiSecret')}</Label>
+          <a
+            href="/docs/api-guide"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 hover:underline"
+          >
+            How to get key?
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Input

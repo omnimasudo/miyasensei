@@ -53,6 +53,7 @@ const VIDEO_PROVIDER_ICONS: Record<string, string> = {
   kling: '/logos/kling.svg',
   veo: '/logos/gemini.svg',
   sora: '/logos/openai.svg',
+  openai: '/logos/openai.svg',
 };
 
 type TabId = 'image' | 'video' | 'tts' | 'asr';

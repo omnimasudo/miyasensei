@@ -3,7 +3,7 @@
 import { Box } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
-import type { ProviderId, ProviderConfig } from '@/lib/ai/providers';
+import type { ProviderId, ProviderConfig } from '@/lib/ai/providers-config';
 
 interface ProviderWithServerInfo extends ProviderConfig {
   isServerConfigured?: boolean;

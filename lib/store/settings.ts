@@ -5,9 +5,9 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ProviderId } from '@/lib/ai/providers';
+import type { ProviderId } from '@/lib/ai/providers-config';
 import type { ProvidersConfig } from '@/lib/types/settings';
-import { PROVIDERS } from '@/lib/ai/providers';
+import { PROVIDERS } from '@/lib/ai/providers-config';
 import type { TTSProviderId, ASRProviderId } from '@/lib/audio/types';
 import { ASR_PROVIDERS, DEFAULT_TTS_VOICES } from '@/lib/audio/constants';
 import type { PDFProviderId } from '@/lib/pdf/types';
