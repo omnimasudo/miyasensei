@@ -329,8 +329,15 @@ export default function LandingPage() {
       </section>
       
       {/* ═══ Footer ═══ */}
-      <footer className="py-12 border-t border-slate-100 text-center text-slate-500 text-sm bg-white">
-        <p>&copy; {new Date().getFullYear()} MiyaSensei. All rights reserved.</p>
+      <footer className="py-12 border-t border-slate-100 bg-white">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-slate-500 text-sm">&copy; {new Date().getFullYear()} MiyaSensei. All rights reserved.</p>
+          <div className="flex gap-6 text-sm font-medium text-slate-600">
+            <Link href="/docs/openrouter-setup" className="hover:text-slate-900 transition-colors">
+              OpenRouter Setup Guide
+            </Link>
+          </div>
+        </div>
       </footer>
     </div>
   );

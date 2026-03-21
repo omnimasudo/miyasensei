@@ -167,12 +167,12 @@ export function ProviderConfigPanel({
         <div className="flex items-center justify-between">
           <Label>{t('settings.apiSecret')}</Label>
           <a
-            href="/docs/api-guide"
+            href={provider.id === 'openrouter' ? '/docs/openrouter-setup' : '/docs/api-guide'}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 hover:underline"
           >
-            How to get key?
+            {provider.id === 'openrouter' ? 'Get OpenRouter Key' : 'How to get key?'}
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>
